@@ -36,7 +36,7 @@ You are an **Engineering Manager** who coordinates work across specialized agent
 
 ### Available Specialist Agents
 
-You have the following agents at your disposal:
+You have the following agents at your disposal. You must rely on them as much as reasonable:
 
 - **ruby-developer**: Writes Ruby code for the Vagrant plugin (provider, actions, config)
 - **test-engineer**: Writes and runs tests (unit, integration, compatibility)
@@ -114,6 +114,7 @@ When you receive a request, ask yourself:
 - Provide examples for complex features
 - Update docs in the same commit as code changes
 - Use mermaid diagrams for architecture and flows
+- Optimize mermaid diagrams for dark mode
 
 ## Architecture Quick Reference
 
@@ -190,6 +191,54 @@ Track unresolved questions here as they arise during development:
 - Distribution detection: How to validate available OrbStack distributions?
 - Box format: Custom format now or defer to post-MVP?
 - Error messages: What level of detail to include?
+
+## Linear Integration
+
+**Team Information:**
+- **Team Name**: Spiral House
+- **Team ID**: `03ee7cf5-773e-4f53-bc0d-2e5e4d3bc3bc`
+- **Icon**: Home
+
+**Project Information:**
+- **Project Name**: vagrant-orbstack-provider
+- **Project ID**: `17cca0c7-f003-4fd8-9be2-327349fb6e15`
+- **Project URL**: https://linear.app/spiral-house/project/vagrant-orbstack-provider-2a1cd5b210f3
+- **Summary**: This is an open-source Vagrant provider plugin that enables OrbStack as a backend for managing development environments on macOS.
+- **Current Status**: Backlog
+
+**Workflow States:**
+
+| State Name | Type | State ID |
+|------------|------|----------|
+| Backlog | backlog | `1e7bd879-6685-4d94-8887-b7709b3ae6e8` |
+| Todo | unstarted | `fc814d1f-22b5-4ce6-8b40-87c1312d54ba` |
+| In Progress | started | `a433a32b-b815-4e11-af23-a74cb09606aa` |
+| In Review | started | `8d617a10-15f3-4e26-ad28-3653215c2f25` |
+| Done | completed | `3d267fcf-15c0-4f3a-8725-2f1dd717e9e8` |
+| Canceled | canceled | `a2581462-7e43-4edb-a13a-023a2f4a6b1e` |
+| Duplicate | canceled | `3f7c4359-7560-4bd9-93b7-9900671742aa` |
+
+**Agile Methodology:**
+- **Hierarchy**: Epic → Story → Subtask
+- **Estimation**: Fibonacci sequence (1, 2, 3, 5, 8, 13, 21)
+  - 1 point: Trivial task (< 1 hour, straightforward implementation)
+  - 2 points: Simple task (1-2 hours, minimal complexity)
+  - 3 points: Small task (2-4 hours, some complexity or research needed)
+  - 5 points: Medium task (4-8 hours, moderate complexity, multiple components)
+  - 8 points: Large task (1-2 days, significant complexity, integration work)
+  - 13 points: Very large task (2-3 days, high complexity, consider breakdown)
+  - 21 points: Too large for a 2-week sprint (needs breakdown into smaller stories)
+- **Source of Truth**: Linear project "vagrant-orbstack-provider"
+
+**Issue Tracking Guidelines:**
+- Create Epics for major features or milestones, use the Epic label
+- Break Epics into Stories (user-facing functionality)
+- Create Subtasks for implementation details
+- Use Fibonacci estimation for all work items
+- Stories > 13 points should be broken down further
+- Stories without child issues and subtasks have estimates
+- Issues move from Backlog to Todo once they have estimates and acceptance criteria
+- Reference Linear issues in commit messages
 
 ## Project Status
 
