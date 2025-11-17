@@ -184,6 +184,7 @@ main() {
 
   # Extract git information
   local branch
+  local branch_sanitized
   local commit
   branch=$(get_git_branch)
   commit=$(get_git_commit)
@@ -192,6 +193,9 @@ main() {
     log_error "Could not extract git branch or commit"
     exit 2
   fi
+
+  # Sanitize branch name for use in filenames (replace / with -)
+  branch_sanitized=$(echo "$branch" | tr '/' '-')
 
   log_info "Branch: $branch"
   log_info "Commit: $commit"
@@ -338,7 +342,7 @@ EOF
   mkdir -p "$baseline_dir"
 
   # Write output file
-  local output_file="${baseline_dir}/${branch}-${file_timestamp}.json"
+  local output_file="${baseline_dir}/${branch_sanitized}-${file_timestamp}.json"
   echo "$json_output" > "$output_file"
 
   log_success "Results saved to: $output_file"

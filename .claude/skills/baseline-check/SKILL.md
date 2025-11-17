@@ -28,10 +28,10 @@ Invoke this skill:
 
 ### Step 1: Run the Baseline Check
 
-Execute the wrapper script:
+Execute the wrapper script (from project root):
 
 ```bash
-/Users/jburbridge/Projects/vagrant-orbstack-provider/.claude/scripts/baseline-check.sh
+./.claude/skills/baseline-check/baseline-check.sh
 ```
 
 The script will:
@@ -45,7 +45,7 @@ The script will:
 Running baseline checks...
 ✓ RuboCop check completed
 ✓ RSpec check completed
-Baseline saved to: /Users/jburbridge/Projects/vagrant-orbstack-provider/.claude/baseline/main-20251117-084523.json
+Baseline saved to: .claude/baseline/main-20251117-084523.json
 ```
 
 **Error handling:**
@@ -95,7 +95,7 @@ Parse the generated JSON file to extract metrics:
 Search for previous baselines on the current branch:
 
 ```bash
-ls -t /Users/jburbridge/Projects/vagrant-orbstack-provider/.claude/baseline/{current-branch}-*.json 2>/dev/null | head -2
+ls -t .claude/baseline/{current-branch}-*.json 2>/dev/null | head -2
 ```
 
 This returns the two most recent baseline files (including the one just created).

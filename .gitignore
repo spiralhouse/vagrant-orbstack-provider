@@ -64,4 +64,5 @@
 *.dylib
 
 # Claude Code baseline artifacts (local development only)
-.claude/baseline/
+.claude/baseline/*
+!.claude/baseline/.gitkeep
