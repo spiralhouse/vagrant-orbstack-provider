@@ -1,0 +1,122 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint (RuboCop)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Run RuboCop
+        run: bundle exec rubocop
+
+  test:
+    name: Test (Ruby ${{ matrix.ruby }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby: ['3.2', '3.3']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+
+      - name: Run tests
+        run: bundle exec rspec
+
+      - name: Upload coverage to Codecov
+        if: matrix.ruby == '3.3'
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage/coverage.json
+          flags: unittests
+          name: ruby-3.3
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  build:
+    name: Build Gem
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - name: Build gem
+        run: |
+          mkdir -p pkg
+          gem build vagrant-orbstack.gemspec
+          mv vagrant-orbstack-*.gem pkg/
+
+      - name: List gem contents
+        run: gem spec pkg/vagrant-orbstack-*.gem --yaml
+
+      - name: Upload gem artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vagrant-orbstack-gem
+          path: pkg/*.gem
+          retention-days: 7
+
+  integration:
+    name: Integration Tests (macOS)
+    runs-on: macos-latest
+    timeout-minutes: 15
+    continue-on-error: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - name: Check for integration tests
+        id: check-integration
+        run: |
+          if [ -d "spec/integration" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run integration tests
+        if: steps.check-integration.outputs.exists == 'true'
+        run: bundle exec rspec spec/integration
+
+      - name: Skip integration tests
+        if: steps.check-integration.outputs.exists == 'false'
+        run: echo "No integration tests found - skipping"

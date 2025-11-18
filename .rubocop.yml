@@ -3,11 +3,12 @@
 AllCops:
   NewCops: enable
   SuggestExtensions: false
-  TargetRubyVersion: 2.6
+  TargetRubyVersion: 3.2
   Exclude:
     - 'vendor/**/*'
     - 'tmp/**/*'
     - 'pkg/**/*'
+    - 'bin/**/*'
 
 # Gem entry point files conventionally use hyphenated names
 Naming/FileName:
