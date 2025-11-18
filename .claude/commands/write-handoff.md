@@ -287,6 +287,29 @@ No active Linear issue detected. This session involved general development work.
 
 ---
 
+## TDD Status
+
+**Current Phase**: [RED/GREEN/REFACTOR/Complete]
+
+**Test Coverage**:
+- Unit tests: [count] examples, [count] failures
+- Integration tests: [count] examples, [count] failures
+- Overall: [X]% coverage (from latest baseline-check)
+
+**Pending Tests**:
+- [ ] [Test scenario not yet written]
+- [ ] [Test scenario not yet written]
+
+**Technical Debt** (from software-architect):
+- [Issue identified during REFACTOR phase]
+- [Pattern improvement opportunity]
+
+**TDD Workflow Notes**:
+- [Which phase was in progress]
+- [Any blockers in RED-GREEN-REFACTOR cycle]
+
+---
+
 ## Active Todo List
 
 {Complete TodoWrite state with all tasks}

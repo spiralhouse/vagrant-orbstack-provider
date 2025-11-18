@@ -40,6 +40,13 @@ Read the handoff document carefully and extract:
 - What tests were written
 - What documentation was updated
 
+**TDD Status**:
+- Current TDD phase (RED/GREEN/REFACTOR/Complete)
+- Test coverage metrics
+- Pending tests
+- Technical debt notes from software-architect
+- Blockers in TDD cycle
+
 **Todo List State**:
 - All completed tasks (✓)
 - Current in-progress task (→)
@@ -156,6 +163,19 @@ Provide a clear, structured summary to the user:
 ## Work Completed (Previous Session)
 
 {Summarize 3-5 key accomplishments}
+
+## TDD Status Restored
+
+**Phase**: [RED/GREEN/REFACTOR/Complete]
+**Coverage**: [X]% ([Y] examples, [Z] failures)
+
+**Pending Tests**:
+[List from handoff]
+
+**Technical Debt**:
+[List from handoff]
+
+**Next TDD Action**: [What phase to continue from]
 
 ## Current Todo List
 
