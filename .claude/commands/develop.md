@@ -302,29 +302,79 @@ Epic: [SPI-xxx] [Epic Title]
 ### Design Document Needed?
 [YES/NO] - [Rationale]
 
+## TDD Workflow
+
+This feature will be developed following RED-GREEN-REFACTOR cycle:
+
+### RED Phase (test-engineer)
+- Write failing tests for [specific functionality]
+- Verify tests fail with clear messages
+- Test files: [list expected test files]
+- Success: Tests exist and fail with informative error messages
+
+### GREEN Phase (ruby-developer)
+- Implement minimal solution to pass tests
+- Don't refactor yet - just make it work
+- Implementation files: [list files]
+- Success: All tests pass (new + existing)
+
+### REFACTOR Phase
+1. **software-architect**: Analyze for patterns, duplication, design improvements
+   - Review implementation and tests
+   - Identify code smells or design issues
+   - Provide refactoring strategy with rationale
+   - Success: Clear refactoring strategy provided
+
+2. **ruby-developer**: Implement refactoring strategy
+   - Execute software-architect's strategy
+   - Maintain passing tests throughout
+   - Success: Improved code, all tests green
+
+3. **test-engineer**: Verify all tests still pass
+   - Run complete test suite
+   - Confirm no regressions
+   - Success: Green test suite after refactoring
+
+### Test Coverage Target
+- Unit tests: [specific scenarios]
+- Integration tests: [if applicable]
+- Expected coverage: [%]
+
 ## Agent Delegation Plan
 
 ### Sequence
-1. **ruby-developer**
-   - Task: [Specific implementation task]
-   - Context: [What they need to know]
-   - Files: [List of files to modify/create]
-   - Success: [Definition of done]
+1. **test-engineer** (RED phase)
+   - Task: Write failing tests for [feature]
+   - Files: spec/unit/[feature]_spec.rb
+   - Success: Tests fail with clear messages
 
-2. **test-engineer**
-   - Task: [Specific testing task]
-   - Context: [What needs to be tested]
-   - Coverage: [Critical paths to test]
-   - Success: [Definition of done]
+2. **ruby-developer** (GREEN phase)
+   - Task: Implement [feature] to pass tests
+   - Files: lib/vagrant-orbstack/[feature].rb
+   - Success: All tests pass
 
-3. **documentation-writer**
+3. **software-architect** (REFACTOR analysis)
+   - Task: Analyze implementation for patterns and improvements
+   - Focus: DRY, SOLID, design patterns
+   - Success: Clear refactoring strategy provided
+
+4. **ruby-developer** (REFACTOR execution)
+   - Task: Implement refactoring strategy
+   - Constraint: Maintain passing tests
+   - Success: Improved code, all tests green
+
+5. **test-engineer** (REFACTOR verification)
+   - Task: Confirm all tests still pass
+   - Success: Green test suite
+
+6. **documentation-writer**
    - Task: [Specific documentation task]
    - Context: [What needs documenting]
    - Files: [Docs to update]
    - Success: [Definition of done]
 
-4. **code-reviewer**
-   - Task: Review implementation and tests
+7. **code-reviewer**
+   - Task: Final review (quality, security, tests, approval)
    - Focus: [Specific review areas]
    - Success: Approval for merge
 

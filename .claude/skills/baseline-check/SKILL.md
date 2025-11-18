@@ -20,9 +20,11 @@ Invoke this skill:
 
 1. **Before starting development work** - Establish current baseline
 2. **After completing changes** - Check for regressions
-3. **Before committing code** - Verify quality standards
-4. **When explicitly requested** - User asks for quality check, baseline, or regression analysis
-5. **During code review** - Validate changes meet quality bar
+3. **After GREEN phase** - Verify tests exist and pass
+4. **After REFACTOR phase** - Verify tests still pass after refactoring
+5. **Before committing code** - Verify quality standards
+6. **When explicitly requested** - User asks for quality check, baseline, or regression analysis
+7. **During code review** - Validate changes meet quality bar
 
 ## How to Execute
 
@@ -355,13 +357,35 @@ Note: Previous baseline is from a different branch or significantly
 older commit. Comparison may include expected differences from other work.
 ```
 
+## TDD Integration
+
+baseline-check plays a critical role in TDD workflow:
+
+**During GREEN Phase**:
+- Verify tests exist for new implementation
+- Confirm tests are passing
+- Measure test coverage increase
+- Flag if implementation has no corresponding tests
+
+**During REFACTOR Phase**:
+- Confirm all tests still pass after refactoring
+- Verify no test coverage regression
+- Compare before/after refactor metrics
+
+**Quality Gate**:
+- No implementation accepted without tests
+- Test count should increase with new features
+- Test pass rate should remain 100%
+
 ## Best Practices
 
 1. **Run before starting work** - Establishes clean baseline
 2. **Run after each significant change** - Catches issues early
-3. **Don't ignore warnings** - Small regressions accumulate
-4. **Celebrate improvements** - Acknowledge quality improvements
-5. **Block on critical issues** - Never commit with fatals/errors/failures
+3. **Run after GREEN phase** - Verify tests exist and pass
+4. **Run after REFACTOR phase** - Confirm tests still pass
+5. **Don't ignore warnings** - Small regressions accumulate
+6. **Celebrate improvements** - Acknowledge quality improvements
+7. **Block on critical issues** - Never commit with fatals/errors/failures
 
 ## Technical Notes
 
