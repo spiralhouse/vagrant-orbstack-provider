@@ -22,6 +22,7 @@
 /.bundle/
 /vendor/bundle
 .bundle
+/bin/
 
 # RSpec
 .rspec_status
