@@ -53,6 +53,199 @@ graph LR
 
 ---
 
+## TDD Phase Artifacts
+
+Each TDD phase creates a summary document for handoff to the next phase. These are **temporary coordination files** stored in `/tmp/` and **must not be committed** to the repository.
+
+### Purpose
+
+Phase artifacts serve as detailed handoff documentation between agents:
+- Preserve context across agent transitions
+- Document decisions and rationale
+- Provide clear implementation guidance
+- Enable session continuity via `/write-handoff` and `/read-handoff`
+- Keep coordination separate from production code
+
+### Naming Convention
+
+```
+/tmp/{issue-id}-red-phase-summary.md
+/tmp/{issue-id}-green-phase-summary.md
+/tmp/{issue-id}-refactor-phase-summary.md
+```
+
+**Examples:**
+- `/tmp/SPI-1130-red-phase-summary.md`
+- `/tmp/SPI-1131-green-phase-summary.md`
+- `/tmp/SPI-1132-refactor-phase-summary.md`
+
+### Phase Workflows
+
+#### RED Phase Summary (test-engineer creates)
+
+**File**: `/tmp/{issue-id}-red-phase-summary.md`
+
+**Contents:**
+- Test files created and their purposes
+- Test failure messages (proving tests fail)
+- Expected behavior specification
+- Implementation guidance for ruby-developer
+- Edge cases to consider
+- Mock/stub requirements
+
+**Example Structure:**
+```markdown
+# RED Phase Summary: SPI-1131 Configuration Validation
+
+## Tests Created
+- spec/unit/vagrant-orbstack/config_spec.rb (22 tests)
+- All tests FAIL as expected
+
+## Failure Messages
+- LoadError: cannot load such file 'vagrant-orbstack/config'
+- NameError: uninitialized constant VagrantPlugins::OrbStack::Config
+
+## Implementation Guidance
+ruby-developer should create:
+1. lib/vagrant-orbstack/config.rb
+2. Implement Config class with: distro, version, machine_name attributes
+3. Implement validate, finalize!, initialize methods
+
+## Edge Cases
+- Handle UNSET_VALUE vs nil distinction
+- Default values in finalize!
+- Validation errors return proper hash structure
+```
+
+#### GREEN Phase Summary (ruby-developer creates)
+
+**File**: `/tmp/{issue-id}-green-phase-summary.md`
+
+**Contents:**
+- Implementation files created
+- Implementation approach taken
+- Test results (all passing)
+- Areas noted for refactoring
+- Technical decisions made
+- Known limitations or stubs
+
+**Example Structure:**
+```markdown
+# GREEN Phase Summary: SPI-1131 Configuration Validation
+
+## Implementation Complete
+- lib/vagrant-orbstack/config.rb (60 lines)
+- All 22 tests passing
+
+## Implementation Approach
+- Used Vagrant::UNSET_VALUE sentinel pattern
+- Implemented three-phase lifecycle: initialize → finalize! → validate
+- Defaults: distro='ubuntu', version=nil, machine_name=nil
+
+## Areas for Refactoring
+- Validation logic in single method (may need extraction if grows)
+- Magic string "OrbStack Provider" for error namespace
+- Could benefit from YARD documentation
+
+## Test Results
+✓ 22 examples, 0 failures
+✓ All config attributes working
+✓ Validation interface correct
+```
+
+#### REFACTOR Phase Summary (software-architect creates)
+
+**File**: `/tmp/{issue-id}-refactor-phase-summary.md`
+
+**Contents:**
+- Code quality analysis
+- Refactoring strategy (prioritized)
+- Patterns to apply
+- Ruby style issues
+- Performance considerations
+- Final implementation state after refactoring
+
+**Example Structure:**
+```markdown
+# REFACTOR Phase Summary: SPI-1131 Configuration Validation
+
+## Analysis
+Code is well-structured. Minor improvements needed:
+- RuboCop: 5 offenses (style only)
+- Missing YARD documentation
+- Accessor grouping opportunity
+
+## Refactoring Strategy
+**P1 (Must Fix):** None - no critical issues
+**P2 (Should Fix):**
+- Add YARD documentation
+- Group attr_accessor declarations
+- Fix RuboCop offenses
+
+## Implementation Complete
+- All refactorings applied
+- Tests still passing (22 examples, 0 failures)
+- RuboCop: 0 offenses
+- YARD documentation complete
+```
+
+### Reading Phase Artifacts
+
+**Each agent reads the previous phase's summary:**
+
+- **GREEN phase (ruby-developer)** reads: `/tmp/{issue-id}-red-phase-summary.md`
+- **REFACTOR phase (software-architect)** reads: `/tmp/{issue-id}-green-phase-summary.md`
+- **REFACTOR implementation (ruby-developer)** reads: `/tmp/{issue-id}-refactor-phase-summary.md`
+
+### Cleanup Protocol
+
+Phase summaries are temporary and should be cleaned up after PR merge:
+
+```bash
+# After PR merged
+rm /tmp/{issue-id}-*-phase-summary.md
+
+# Or clean all phase summaries
+rm /tmp/*-phase-summary.md
+```
+
+### Integration with Handoff Commands
+
+**`/write-handoff` includes phase artifacts:**
+```markdown
+## TDD Phase Artifacts
+- RED: /tmp/SPI-1130-red-phase-summary.md
+- GREEN: /tmp/SPI-1130-green-phase-summary.md
+- REFACTOR: /tmp/SPI-1130-refactor-phase-summary.md
+- Status: REFACTOR phase complete
+```
+
+**`/read-handoff` references artifacts:**
+```markdown
+TDD Status: REFACTOR phase
+Last artifact: /tmp/SPI-1130-refactor-phase-summary.md
+Next step: test-engineer verification
+```
+
+### Why /tmp/?
+
+**Benefits of using `/tmp/` for phase artifacts:**
+1. **Not production code**: Clear separation from codebase
+2. **Git ignored**: Won't be accidentally committed (via .gitignore pattern)
+3. **Session-scoped**: Natural cleanup when session ends
+4. **Fast access**: No path complexity
+5. **Standard location**: Predictable for all agents
+
+**Important**: Add pattern to `.gitignore` to prevent accidental commits:
+```gitignore
+# TDD phase summary artifacts
+*-red-phase-summary.md
+*-green-phase-summary.md
+*-refactor-phase-summary.md
+```
+
+---
+
 ## Phase 1: RED - Write Failing Test
 
 **Owner:** test-engineer

@@ -1,0 +1,38 @@
+# RuboCop configuration for vagrant-orbstack provider
+
+AllCops:
+  NewCops: enable
+  SuggestExtensions: false
+  TargetRubyVersion: 2.6
+  Exclude:
+    - 'vendor/**/*'
+    - 'tmp/**/*'
+    - 'pkg/**/*'
+
+# Gem entry point files conventionally use hyphenated names
+Naming/FileName:
+  Exclude:
+    - 'lib/vagrant-orbstack.rb'
+
+# Vagrant provider base class doesn't define initialize
+# See: https://developer.hashicorp.com/vagrant/docs/plugins/providers
+Lint/MissingSuper:
+  Exclude:
+    - 'lib/vagrant-orbstack/provider.rb'
+
+# RSpec describe blocks naturally exceed default length
+# Splitting them would reduce test readability
+Metrics/BlockLength:
+  Exclude:
+    - 'spec/**/*_spec.rb'
+
+# Test helper defines minimal mock classes for Vagrant API
+# Empty classes are intentional to satisfy plugin interface
+Lint/EmptyClass:
+  Exclude:
+    - 'spec/spec_helper.rb'
+
+# MFA requirement is for published gems
+# Will be enabled before first RubyGems.org release
+Gemspec/RequireMFA:
+  Enabled: false
