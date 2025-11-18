@@ -73,7 +73,10 @@ jobs:
           bundler-cache: true
 
       - name: Build gem
-        run: gem build vagrant-orbstack.gemspec
+        run: |
+          mkdir -p pkg
+          gem build vagrant-orbstack.gemspec
+          mv vagrant-orbstack-*.gem pkg/
 
       - name: List gem contents
         run: gem spec pkg/vagrant-orbstack-*.gem --yaml
