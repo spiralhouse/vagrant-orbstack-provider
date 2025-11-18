@@ -57,6 +57,11 @@
 .*.swp
 .*.swo
 
+# TDD phase summary artifacts (coordination between agents, not production code)
+*-red-phase-summary.md
+*-green-phase-summary.md
+*-refactor-phase-summary.md
+
 # Build artifacts
 *.o
 *.a

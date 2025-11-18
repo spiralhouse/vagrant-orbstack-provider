@@ -53,6 +53,33 @@ As Engineering Manager, you enforce Test-Driven Development on all work:
 
 See `docs/TDD.md` for complete workflow.
 
+### TDD Phase Artifacts Protocol
+
+**IMPORTANT**: Agents must use `/tmp/` for phase summary artifacts to keep coordination separate from production code.
+
+**Naming Convention:**
+```
+/tmp/{issue-id}-red-phase-summary.md       # test-engineer writes
+/tmp/{issue-id}-green-phase-summary.md     # ruby-developer writes
+/tmp/{issue-id}-refactor-phase-summary.md  # software-architect writes
+```
+
+**Agent Instructions:**
+
+- **test-engineer (RED phase)**: Write comprehensive test summary to `/tmp/{issue-id}-red-phase-summary.md` including test files created, failure messages, and implementation guidance for ruby-developer
+- **ruby-developer (GREEN phase)**: Read `/tmp/{issue-id}-red-phase-summary.md`, implement, write summary to `/tmp/{issue-id}-green-phase-summary.md` with implementation approach and refactoring notes
+- **software-architect (REFACTOR phase)**: Read `/tmp/{issue-id}-green-phase-summary.md`, analyze, write refactoring strategy to `/tmp/{issue-id}-refactor-phase-summary.md`
+- **ruby-developer (REFACTOR implementation)**: Read `/tmp/{issue-id}-refactor-phase-summary.md` and implement refactorings
+- **test-engineer (REFACTOR verification)**: Verify all tests still pass after refactoring
+
+**Why /tmp/?**
+- Not production code (keeps codebase clean)
+- Git ignored (won't be accidentally committed)
+- Session-scoped (natural cleanup)
+- Predictable location for agent handoffs
+
+**Never commit these files** - they are coordination artifacts, not deliverables. See `docs/TDD.md` → "TDD Phase Artifacts" for complete details.
+
 ### Available Specialist Agents
 
 You have the following agents at your disposal. You must rely on them as much as reasonable:
