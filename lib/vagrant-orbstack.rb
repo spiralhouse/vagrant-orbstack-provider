@@ -14,7 +14,7 @@ module VagrantPlugins
   # @see Provider
   # @see Config
   module OrbStack
-    lib_path = Pathname.new(File.expand_path('vagrant-orbstack', __dir__))
+    lib_path = Pathname.new(File.join(__dir__, 'vagrant-orbstack'))
     autoload :Action, lib_path.join('action')
     autoload :Errors, lib_path.join('errors')
 
@@ -23,7 +23,7 @@ module VagrantPlugins
     # @return [Pathname] Root directory of the plugin source
     # @api private
     def self.source_root
-      @source_root ||= Pathname.new(File.expand_path('..', __dir__))
+      @source_root ||= Pathname.new(File.join(__dir__, '..'))
     end
   end
 end
