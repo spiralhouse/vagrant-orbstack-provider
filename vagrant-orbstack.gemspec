@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+require_relative 'lib/vagrant-orbstack/version'
+
 Gem::Specification.new do |spec|
   spec.name          = 'vagrant-orbstack'
-  spec.version       = '0.1.0'
+  spec.version       = VagrantPlugins::OrbStack::VERSION
   spec.authors       = ['Vagrant OrbStack Contributors']
   spec.email         = ['noreply@example.com']
 
