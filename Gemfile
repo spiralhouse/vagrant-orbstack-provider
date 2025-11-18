@@ -10,6 +10,7 @@ group :development, :test do
   gem 'pry', '~> 0.14'
   gem 'rspec', '~> 3.12'
   gem 'rubocop', '~> 1.50'
+  gem 'simplecov', '~> 0.22', require: false
 end
 
 # Load gemspec dependencies

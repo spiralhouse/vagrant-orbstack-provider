@@ -1,5 +1,31 @@
 # frozen_string_literal: true
 
+# Configure code coverage before loading any application code
+if ENV['COVERAGE'] || ENV['CI']
+  require 'simplecov'
+
+  SimpleCov.start do
+    add_filter '/spec/'
+    add_filter '/vendor/'
+    add_filter '/bin/'
+
+    add_group 'Core', 'lib/vagrant-orbstack'
+    add_group 'Actions', 'lib/vagrant-orbstack/action'
+
+    # Minimum coverage threshold
+    minimum_coverage 80
+
+    # Generate JSON format for Codecov (Codecov can parse SimpleCov's JSON)
+    if ENV['CI']
+      require 'simplecov_json_formatter'
+      SimpleCov.formatters = SimpleCov::Formatter::MultiFormatter.new([
+                                                                        SimpleCov::Formatter::HTMLFormatter,
+                                                                        SimpleCov::Formatter::JSONFormatter
+                                                                      ])
+    end
+  end
+end
+
 # RSpec configuration for vagrant-orbstack provider tests
 require 'bundler/setup'
 require 'pathname'

@@ -8,6 +8,7 @@ AllCops:
     - 'vendor/**/*'
     - 'tmp/**/*'
     - 'pkg/**/*'
+    - 'bin/**/*'
 
 # Gem entry point files conventionally use hyphenated names
 Naming/FileName:
