@@ -9,7 +9,7 @@ on:
 jobs:
   lint:
     name: Lint (RuboCop)
-    runs-on: [self-hosted, linux, x64]
+    runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 5
 
     steps:
@@ -27,7 +27,7 @@ jobs:
 
   test:
     name: Test (Ruby ${{ matrix.ruby }})
-    runs-on: [self-hosted, linux, x64]
+    runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 10
     strategy:
       fail-fast: false
@@ -59,7 +59,7 @@ jobs:
 
   build:
     name: Build Gem
-    runs-on: [self-hosted, linux, x64]
+    runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 5
 
     steps:
