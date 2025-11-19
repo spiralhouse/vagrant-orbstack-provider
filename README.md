@@ -4,6 +4,7 @@ A Vagrant provider plugin that enables [OrbStack](https://orbstack.dev/) as a ba
 
 ![Development Status](https://img.shields.io/badge/status-alpha-orange)
 ![Version](https://img.shields.io/badge/version-0.1.0-blue)
+[![codecov](https://codecov.io/gh/spiralhouse/vagrant-orbstack-provider/graph/badge.svg?token=VIHOdRkRJ9)](https://codecov.io/gh/spiralhouse/vagrant-orbstack-provider)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Project Overview
@@ -94,36 +95,154 @@ vagrant destroy
 
 > **Important Note**: Most provider features are stubs in v0.1.0. The commands above will execute but machine lifecycle operations are not yet implemented. See [Project Status](#project-status) for what's currently functional.
 
-## Configuration Options
+## Configuration
 
-The following configuration options are available in the `config.vm.provider :orbstack` block:
+The OrbStack provider supports several configuration options to customize your development environment. All configuration is optional—the provider uses sensible defaults following Vagrant's convention-over-configuration philosophy.
 
-### `distro`
-- **Type**: String
-- **Default**: `"ubuntu"`
-- **Description**: Linux distribution to use for the machine
+### Basic Configuration
 
-### `version`
-- **Type**: String
-- **Default**: `nil`
-- **Description**: Distribution version to use (e.g., "22.04")
-
-### `machine_name`
-- **Type**: String
-- **Default**: `nil` (auto-generated)
-- **Description**: Custom name for the OrbStack machine
-
-### Example Configuration
+The minimal Vagrantfile requires no provider-specific configuration:
 
 ```ruby
 Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu"  # Currently ignored - to be implemented
+
   config.vm.provider :orbstack do |os|
-    os.distro = "debian"
-    os.version = "12"
-    os.machine_name = "my-debian-machine"
+    # Uses defaults: Ubuntu distribution
   end
 end
 ```
+
+### Configuration Options
+
+| Option | Type | Default | Required | Description |
+|--------|------|---------|----------|-------------|
+| `distro` | String | `"ubuntu"` | No | Linux distribution to use |
+| `version` | String | `nil` | No | Distribution version (e.g., "22.04") |
+| `machine_name` | String | `nil` (auto-generated) | No | Custom OrbStack machine name |
+
+#### Validation Rules
+
+- **distro**: Cannot be empty or blank. The provider validates this at runtime.
+- **machine_name**: If specified, must contain only alphanumeric characters (a-z, A-Z, 0-9) and hyphens (-). Must start and end with an alphanumeric character. No consecutive hyphens allowed.
+  - Valid examples: `"my-dev-env"`, `"project-1"`, `"ubuntu-machine"`
+  - Invalid examples: `"-invalid"`, `"invalid-"`, `"invalid--name"`, `"invalid_name"`
+
+### Configuration Examples
+
+#### Default Configuration
+
+The simplest configuration uses all defaults:
+
+```ruby
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu"  # Currently ignored - to be implemented
+
+  config.vm.provider :orbstack do |os|
+    # All options use defaults
+    # distro: "ubuntu"
+    # version: nil
+    # machine_name: nil (auto-generated)
+  end
+end
+```
+
+#### Specify Distribution and Version
+
+Choose a specific Linux distribution and version:
+
+```ruby
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu"  # Currently ignored - to be implemented
+
+  config.vm.provider :orbstack do |os|
+    os.distro = "ubuntu"
+    os.version = "22.04"
+  end
+end
+```
+
+#### Custom Machine Name
+
+Provide a custom name for your OrbStack machine:
+
+```ruby
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu"  # Currently ignored - to be implemented
+
+  config.vm.provider :orbstack do |os|
+    os.distro = "ubuntu"
+    os.machine_name = "my-dev-machine"
+  end
+end
+```
+
+#### Complete Configuration
+
+Specify all available options:
+
+```ruby
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu"  # Currently ignored - to be implemented
+
+  config.vm.provider :orbstack do |os|
+    os.distro = "ubuntu"
+    os.version = "22.04"
+    os.machine_name = "my-dev-environment"
+  end
+end
+```
+
+#### Different Distributions
+
+Examples using various Linux distributions:
+
+```ruby
+# Debian
+Vagrant.configure("2") do |config|
+  config.vm.box = "debian"  # Currently ignored - to be implemented
+
+  config.vm.provider :orbstack do |os|
+    os.distro = "debian"
+    os.version = "12"
+    os.machine_name = "debian-dev"
+  end
+end
+
+# Fedora
+Vagrant.configure("2") do |config|
+  config.vm.box = "fedora"  # Currently ignored - to be implemented
+
+  config.vm.provider :orbstack do |os|
+    os.distro = "fedora"
+    os.version = "39"
+    os.machine_name = "fedora-dev"
+  end
+end
+
+# Alpine Linux
+Vagrant.configure("2") do |config|
+  config.vm.box = "alpine"  # Currently ignored - to be implemented
+
+  config.vm.provider :orbstack do |os|
+    os.distro = "alpine"
+    os.version = "3.19"
+    os.machine_name = "alpine-dev"
+  end
+end
+```
+
+### Supported Distributions
+
+The provider supports the following Linux distributions available in OrbStack:
+
+- **Ubuntu** (default) - Popular Debian-based distribution
+- **Debian** - Stable, universal Linux distribution
+- **Fedora** - Cutting-edge features and latest packages
+- **Arch Linux** - Rolling release, minimalist distribution
+- **Alpine Linux** - Lightweight, security-oriented distribution
+
+**Note**: Distribution availability depends on your OrbStack installation. Refer to the [OrbStack documentation](https://docs.orbstack.dev/machines/) for the most current list of supported distributions and versions.
 
 ## Project Status
 
