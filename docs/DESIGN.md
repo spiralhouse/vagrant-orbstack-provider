@@ -224,6 +224,76 @@ The provider class is the primary interface between Vagrant and the OrbStack int
 - State queries delegated to OrbStack CLI
 - Brief caching to avoid redundant CLI calls
 
+**Machine Metadata Storage**:
+- Machine ID stored in Vagrant's data directory (`@machine.data_dir`)
+- Two-file storage strategy: ID file (plain text) + metadata file (JSON)
+- Persistent across Vagrant sessions, enabling state recovery
+- Graceful degradation on read errors (returns nil/empty)
+- Fails fast on write errors (raises exceptions)
+
+**Storage Locations**:
+```
+.vagrant/machines/<machine-name>/orbstack/
+  ├── id                   # Machine ID (plain text)
+  └── metadata.json        # Machine metadata (JSON)
+```
+
+**ID File Format** (`.vagrant/machines/<machine-name>/orbstack/id`):
+```
+<machine-id>
+```
+
+**Metadata File Format** (`.vagrant/machines/<machine-name>/orbstack/metadata.json`):
+```json
+{
+  "machine_id": "<uuid>",
+  "orbstack_machine_name": "vagrant-default-abc123",
+  "created_at": "2025-11-18T10:30:00Z",
+  "provider_version": "0.1.0"
+}
+```
+
+**API Methods**:
+- `machine_id_changed` - Vagrant callback for persisting ID changes
+- `read_machine_id` - Read machine ID from storage
+- `write_machine_id(id)` - Persist machine ID to storage
+- `read_metadata` - Read metadata hash from storage
+- `write_metadata(hash)` - Persist metadata hash to storage
+
+**Error Handling**:
+- **Read Operations**: Return safe defaults (nil or {}) on errors
+- **Write Operations**: Raise exceptions on permission/disk errors
+- **Logging**: All errors logged via Vagrant UI (warn/error)
+- **Recovery**: Missing files treated as "not created" state
+
+**Usage Example**:
+```ruby
+# In provider initialization
+machine_id = read_machine_id
+metadata = read_metadata
+
+# After machine creation
+write_machine_id('new-machine-123')
+write_metadata({
+  'machine_id' => 'new-machine-123',
+  'orbstack_machine_name' => 'vagrant-default-abc123',
+  'created_at' => Time.now.utc.iso8601,
+  'provider_version' => VERSION
+})
+
+# Vagrant callback
+def machine_id_changed
+  write_machine_id(@machine.id) if @machine.respond_to?(:id) && @machine.id
+end
+```
+
+**Design Decisions**:
+- **Two Files**: Separate ID file follows Vagrant conventions; metadata file adds extensibility
+- **JSON Format**: Human-readable, easy to debug, extensible schema
+- **Minimal Schema**: Only essential fields for MVP (YAGNI principle)
+- **No Caching**: Direct file I/O sufficient for infrequent operations
+- **No Locking**: Vagrant single-process model doesn't require file locking
+
 ### Configuration Class
 
 The configuration class enables users to customize provider behavior through their Vagrantfile.
