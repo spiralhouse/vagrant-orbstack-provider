@@ -4,6 +4,7 @@ A Vagrant provider plugin that enables [OrbStack](https://orbstack.dev/) as a ba
 
 ![Development Status](https://img.shields.io/badge/status-alpha-orange)
 ![Version](https://img.shields.io/badge/version-0.1.0-blue)
+[![codecov](https://codecov.io/gh/spiralhouse/vagrant-orbstack-provider/graph/badge.svg?token=VIHOdRkRJ9)](https://codecov.io/gh/spiralhouse/vagrant-orbstack-provider)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Project Overview
