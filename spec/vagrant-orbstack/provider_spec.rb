@@ -124,7 +124,7 @@ RSpec.describe 'VagrantPlugins::OrbStack::Provider' do
 
     after do
       # Clean up test files
-      FileUtils.rm_rf(machine.data_dir) if Dir.exist?(machine.data_dir)
+      FileUtils.rm_rf(machine.data_dir)
     end
 
     context 'when machine ID is set for the first time' do
@@ -550,7 +550,7 @@ RSpec.describe 'VagrantPlugins::OrbStack::Provider' do
     context 'when handling very long machine names' do
       it 'stores and retrieves machine names up to 255 characters' do
         # Arrange
-        long_name = 'vagrant-' + ('a' * 248)
+        long_name = "vagrant-#{'a' * 248}"
         metadata = { 'orbstack_machine_name' => long_name }
 
         written_data = nil
