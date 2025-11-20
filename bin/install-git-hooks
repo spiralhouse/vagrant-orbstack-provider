@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+#
+# Install git hooks for local development
+#
+# This script configures git to use hooks from .githooks/ directory
+# instead of the default .git/hooks/ directory.
+#
+# Usage:
+#   ./bin/install-git-hooks
+#
+# Or run automatically during bundle install by adding to your shell profile:
+#   alias bundle='bundle && ./bin/install-git-hooks'
+#
+
+set -e
+
+# Colors for output
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+echo ""
+echo -e "${BLUE}Installing Git Hooks...${NC}"
+echo ""
+
+# Check if we're in a git repository
+if [ ! -d .git ]; then
+  echo -e "${YELLOW}Error: Not a git repository${NC}"
+  echo "Run this script from the project root directory."
+  exit 1
+fi
+
+# Configure git to use .githooks/ directory
+git config core.hooksPath .githooks
+
+echo -e "${GREEN}✓ Git hooks configured successfully!${NC}"
+echo ""
+echo -e "${BLUE}Active hooks:${NC}"
+
+# List available hooks
+if [ -d .githooks ]; then
+  for hook in .githooks/*; do
+    if [ -f "$hook" ] && [ -x "$hook" ]; then
+      hook_name=$(basename "$hook")
+      echo -e "  • ${hook_name}"
+    fi
+  done
+else
+  echo -e "${YELLOW}  No hooks directory found${NC}"
+fi
+
+echo ""
+echo -e "${BLUE}These hooks will now run automatically:${NC}"
+echo -e "  • ${GREEN}pre-push${NC}: Runs RuboCop, RSpec, and gem build before every push"
+echo ""
+echo -e "${YELLOW}To bypass hooks (not recommended):${NC}"
+echo -e "  git push --no-verify"
+echo ""

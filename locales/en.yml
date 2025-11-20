@@ -1,0 +1,25 @@
+en:
+  vagrant_orbstack:
+    errors:
+      orbstack_not_installed: |-
+        OrbStack CLI not found. The 'orb' command is not available in your PATH.
+
+        To fix this issue:
+        1. Install OrbStack from https://orbstack.dev/
+        2. Ensure the 'orb' command is in your PATH
+        3. Restart your terminal and try again
+
+      orbstack_not_running: |-
+        OrbStack is not running. Please start OrbStack before using this provider.
+
+        To fix this issue:
+        1. Open the OrbStack application
+        2. Wait for it to fully start
+        3. Try your Vagrant command again
+
+      command_execution_error: |-
+        Failed to execute OrbStack CLI command: %{command}
+
+        Error details: %{details}
+
+        Please check that OrbStack is properly installed and running.

@@ -123,6 +123,20 @@ unless defined?(Vagrant)
       end
     end
 
+    module Errors
+      class VagrantError < StandardError
+        def self.error_namespace(namespace = nil)
+          @error_namespace = namespace if namespace
+          @error_namespace
+        end
+
+        def self.error_key(key = nil)
+          @error_key = key if key
+          @error_key
+        end
+      end
+    end
+
     def self.plugin(version, type = nil)
       if version == '2' && type == :provider
         Plugin::V2::Provider
@@ -154,6 +168,12 @@ RSpec.configure do |config|
 
   # Disable RSpec exposing methods globally on `Module` and `main`
   config.disable_monkey_patching!
+
+  # Configure mocking behavior
+  config.mock_with :rspec do |mocks|
+    # Allow unstubbed methods to pass through to original implementation
+    mocks.verify_partial_doubles = false
+  end
 
   # Use expect syntax
   config.expect_with :rspec do |c|
