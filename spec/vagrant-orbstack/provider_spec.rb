@@ -64,6 +64,43 @@ RSpec.describe 'VagrantPlugins::OrbStack::Provider' do
       # We'll test this indirectly by checking that it doesn't error
       expect(provider).to be_a(VagrantPlugins::OrbStack::Provider)
     end
+
+    # ============================================================================
+    # LOGGER INITIALIZATION TESTS (SPI-1134)
+    # ============================================================================
+    #
+    # These tests verify that the provider initializes a logger instance
+    # for debugging and operational visibility.
+    #
+    # Reference: SPI-1134 - Logging infrastructure and debug output
+    # ============================================================================
+
+    it 'initializes a logger instance' do
+      require 'vagrant-orbstack/provider'
+      provider = VagrantPlugins::OrbStack::Provider.new(machine)
+
+      # Provider should initialize @logger instance variable
+      logger = provider.instance_variable_get(:@logger)
+      expect(logger).not_to be_nil
+    end
+
+    it 'initializes logger as a Log4r::Logger instance' do
+      require 'vagrant-orbstack/provider'
+      provider = VagrantPlugins::OrbStack::Provider.new(machine)
+
+      # Logger should be a Log4r::Logger instance
+      logger = provider.instance_variable_get(:@logger)
+      expect(logger).to be_a(Log4r::Logger)
+    end
+
+    it 'initializes logger with correct namespace vagrant_orbstack::provider' do
+      require 'vagrant-orbstack/provider'
+      provider = VagrantPlugins::OrbStack::Provider.new(machine)
+
+      # Logger should use Vagrant naming convention: vagrant_orbstack::provider
+      logger = provider.instance_variable_get(:@logger)
+      expect(logger.name).to eq('vagrant_orbstack::provider')
+    end
   end
 
   describe 'provider interface' do

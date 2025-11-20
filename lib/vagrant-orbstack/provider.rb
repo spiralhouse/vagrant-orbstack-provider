@@ -18,6 +18,7 @@ module VagrantPlugins
       # @api public
       def initialize(machine)
         @machine = machine
+        @logger = Log4r::Logger.new('vagrant_orbstack::provider')
       end
 
       # Return action middleware for requested operation.

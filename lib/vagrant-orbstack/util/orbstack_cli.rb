@@ -5,6 +5,8 @@ module VagrantPlugins
     module Util
       # Utility class for detecting and interacting with OrbStack CLI
       class OrbStackCLI
+        @logger = Log4r::Logger.new('vagrant_orbstack::util')
+
         class << self
           # Check if orb command is available in PATH
           # @return [Boolean] true if orb command exists, false otherwise

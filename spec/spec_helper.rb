@@ -159,6 +159,22 @@ unless defined?(Vagrant)
   # Mock VagrantPlugins module
   module VagrantPlugins
   end
+
+  # Mock Log4r module for logger testing
+  module Log4r
+    class Logger
+      attr_reader :name
+
+      def initialize(name)
+        @name = name
+      end
+
+      def info(*args); end
+      def debug(*args); end
+      def warn(*args); end
+      def error(*args); end
+    end
+  end
 end
 
 # Configure RSpec
