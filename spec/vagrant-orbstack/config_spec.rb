@@ -72,6 +72,43 @@ RSpec.describe 'VagrantPlugins::OrbStack::Config' do
 
       expect(config.machine_name).to eq(Vagrant::UNSET_VALUE)
     end
+
+    # ============================================================================
+    # LOGGER INITIALIZATION TESTS (SPI-1134)
+    # ============================================================================
+    #
+    # These tests verify that the config class initializes a logger instance
+    # for debugging configuration validation and operations.
+    #
+    # Reference: SPI-1134 - Logging infrastructure and debug output
+    # ============================================================================
+
+    it 'initializes a logger instance' do
+      require 'vagrant-orbstack/config'
+      config = VagrantPlugins::OrbStack::Config.new
+
+      # Config should initialize @logger instance variable
+      logger = config.instance_variable_get(:@logger)
+      expect(logger).not_to be_nil
+    end
+
+    it 'initializes logger as a Log4r::Logger instance' do
+      require 'vagrant-orbstack/config'
+      config = VagrantPlugins::OrbStack::Config.new
+
+      # Logger should be a Log4r::Logger instance
+      logger = config.instance_variable_get(:@logger)
+      expect(logger).to be_a(Log4r::Logger)
+    end
+
+    it 'initializes logger with correct namespace vagrant_orbstack::config' do
+      require 'vagrant-orbstack/config'
+      config = VagrantPlugins::OrbStack::Config.new
+
+      # Logger should use Vagrant naming convention: vagrant_orbstack::config
+      logger = config.instance_variable_get(:@logger)
+      expect(logger.name).to eq('vagrant_orbstack::config')
+    end
   end
 
   describe 'configuration attributes' do

@@ -23,6 +23,42 @@ RSpec.describe 'VagrantPlugins::OrbStack::Util::OrbStackCLI' do
     end
   end
 
+  # ============================================================================
+  # LOGGER INITIALIZATION TESTS (SPI-1134)
+  # ============================================================================
+  #
+  # These tests verify that the OrbStackCLI utility class initializes a logger
+  # for debugging CLI interactions and command execution.
+  #
+  # Reference: SPI-1134 - Logging infrastructure and debug output
+  # ============================================================================
+
+  describe 'logger initialization' do
+    before do
+      require 'vagrant-orbstack/util/orbstack_cli'
+    end
+
+    let(:cli_class) { VagrantPlugins::OrbStack::Util::OrbStackCLI }
+
+    it 'has a logger class instance variable' do
+      # OrbStackCLI should have a @@logger class variable or @logger class instance variable
+      logger = cli_class.instance_variable_get(:@logger)
+      expect(logger).not_to be_nil
+    end
+
+    it 'logger is a Log4r::Logger instance' do
+      # Logger should be a Log4r::Logger instance
+      logger = cli_class.instance_variable_get(:@logger)
+      expect(logger).to be_a(Log4r::Logger)
+    end
+
+    it 'logger uses correct namespace vagrant_orbstack::util' do
+      # Logger should use Vagrant naming convention: vagrant_orbstack::util
+      logger = cli_class.instance_variable_get(:@logger)
+      expect(logger.name).to eq('vagrant_orbstack::util')
+    end
+  end
+
   describe '.available?' do
     before do
       require 'vagrant-orbstack/util/orbstack_cli'

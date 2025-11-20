@@ -56,6 +56,7 @@ module VagrantPlugins
         @distro = Vagrant::UNSET_VALUE
         @version = Vagrant::UNSET_VALUE
         @machine_name = Vagrant::UNSET_VALUE
+        @logger = Log4r::Logger.new('vagrant_orbstack::config')
       end
 
       # Finalize configuration by setting defaults.
