@@ -37,9 +37,10 @@ RSpec.describe 'VagrantPlugins::OrbStack::Util::OrbStackCLI' do
     context 'when orb command exists in PATH' do
       before do
         # Mock successful 'which orb' command
-        # Uses backticks or system call to check PATH
-        allow(cli_class).to receive(:`).with('which orb 2>/dev/null').and_return('/usr/local/bin/orb')
-        allow($CHILD_STATUS).to receive(:success?).and_return(true)
+        # Uses execute_command to check PATH
+        allow(cli_class).to receive(:execute_command)
+          .with('which orb')
+          .and_return(['/usr/local/bin/orb', true])
       end
 
       it 'returns true' do
@@ -50,8 +51,9 @@ RSpec.describe 'VagrantPlugins::OrbStack::Util::OrbStackCLI' do
     context 'when orb command does not exist in PATH' do
       before do
         # Mock failed 'which orb' command
-        allow(cli_class).to receive(:`).with('which orb 2>/dev/null').and_return('')
-        allow($CHILD_STATUS).to receive(:success?).and_return(false)
+        allow(cli_class).to receive(:execute_command)
+          .with('which orb')
+          .and_return(['', false])
       end
 
       it 'returns false' do
@@ -86,8 +88,9 @@ RSpec.describe 'VagrantPlugins::OrbStack::Util::OrbStackCLI' do
       before do
         # Mock successful version command
         # Example output: "orb version 1.2.3"
-        allow(cli_class).to receive(:`).with('orb --version 2>/dev/null').and_return("orb version 1.2.3\n")
-        allow($CHILD_STATUS).to receive(:success?).and_return(true)
+        allow(cli_class).to receive(:execute_command)
+          .with('orb --version')
+          .and_return(['orb version 1.2.3', true])
       end
 
       it 'returns version string' do
@@ -111,9 +114,9 @@ RSpec.describe 'VagrantPlugins::OrbStack::Util::OrbStackCLI' do
     context 'when orb --version output is unparseable' do
       before do
         # Mock unexpected version output
-        allow(cli_class).to receive(:available?).and_return(true)
-        allow(cli_class).to receive(:`).with('orb --version 2>/dev/null').and_return('Invalid output format')
-        allow($CHILD_STATUS).to receive(:success?).and_return(true)
+        allow(cli_class).to receive(:execute_command)
+          .with('orb --version')
+          .and_return(['Invalid output format', true])
       end
 
       it 'returns nil' do
@@ -124,9 +127,9 @@ RSpec.describe 'VagrantPlugins::OrbStack::Util::OrbStackCLI' do
     context 'when orb --version command fails' do
       before do
         # Mock command failure
-        allow(cli_class).to receive(:available?).and_return(true)
-        allow(cli_class).to receive(:`).with('orb --version 2>/dev/null').and_return('')
-        allow($CHILD_STATUS).to receive(:success?).and_return(false)
+        allow(cli_class).to receive(:execute_command)
+          .with('orb --version')
+          .and_return(['', false])
       end
 
       it 'returns nil' do
@@ -162,8 +165,9 @@ RSpec.describe 'VagrantPlugins::OrbStack::Util::OrbStackCLI' do
       before do
         # Mock successful status check
         # Example output: "OrbStack is running"
-        allow(cli_class).to receive(:`).with('orb status 2>/dev/null').and_return("OrbStack is running\n")
-        allow($CHILD_STATUS).to receive(:success?).and_return(true)
+        allow(cli_class).to receive(:execute_command)
+          .with('orb status')
+          .and_return(['OrbStack is running', true])
       end
 
       it 'returns true' do
@@ -174,8 +178,9 @@ RSpec.describe 'VagrantPlugins::OrbStack::Util::OrbStackCLI' do
     context 'when orb status indicates not running' do
       before do
         # Mock status check showing not running
-        allow(cli_class).to receive(:`).with('orb status 2>/dev/null').and_return("OrbStack is not running\n")
-        allow($CHILD_STATUS).to receive(:success?).and_return(false)
+        allow(cli_class).to receive(:execute_command)
+          .with('orb status')
+          .and_return(['OrbStack is not running', false])
       end
 
       it 'returns false' do
@@ -197,9 +202,9 @@ RSpec.describe 'VagrantPlugins::OrbStack::Util::OrbStackCLI' do
     context 'when orb status command fails' do
       before do
         # Mock command failure
-        allow(cli_class).to receive(:available?).and_return(true)
-        allow(cli_class).to receive(:`).with('orb status 2>/dev/null').and_return('')
-        allow($CHILD_STATUS).to receive(:success?).and_return(false)
+        allow(cli_class).to receive(:execute_command)
+          .with('orb status')
+          .and_return(['', false])
       end
 
       it 'returns false' do
@@ -276,26 +281,34 @@ RSpec.describe 'VagrantPlugins::OrbStack::Util::OrbStackCLI' do
 
     context 'typical usage flow: check availability before operations' do
       it 'allows checking availability before version' do
-        allow(cli_class).to receive(:`).with('which orb 2>/dev/null').and_return('/usr/local/bin/orb')
-        allow($CHILD_STATUS).to receive(:success?).and_return(true)
+        # Mock execute_command for sequential calls
+        allow(cli_class).to receive(:execute_command)
+          .with('which orb')
+          .and_return(['/usr/local/bin/orb', true])
+        allow(cli_class).to receive(:execute_command)
+          .with('orb --version')
+          .and_return(['orb version 1.0.0', true])
 
         # First check if available
         expect(cli_class.available?).to be(true)
 
         # Then get version
-        allow(cli_class).to receive(:`).with('orb --version 2>/dev/null').and_return("orb version 1.0.0\n")
         expect(cli_class.version).to eq('1.0.0')
       end
 
       it 'allows checking running status after availability check' do
-        allow(cli_class).to receive(:`).with('which orb 2>/dev/null').and_return('/usr/local/bin/orb')
-        allow($CHILD_STATUS).to receive(:success?).and_return(true)
+        # Mock execute_command for sequential calls
+        allow(cli_class).to receive(:execute_command)
+          .with('which orb')
+          .and_return(['/usr/local/bin/orb', true])
+        allow(cli_class).to receive(:execute_command)
+          .with('orb status')
+          .and_return(['OrbStack is running', true])
 
         # First check if available
         expect(cli_class.available?).to be(true)
 
         # Then check if running
-        allow(cli_class).to receive(:`).with('orb status 2>/dev/null').and_return("OrbStack is running\n")
         expect(cli_class.running?).to be(true)
       end
     end
@@ -303,10 +316,8 @@ RSpec.describe 'VagrantPlugins::OrbStack::Util::OrbStackCLI' do
     context 'when OrbStack not installed at all' do
       before do
         # Stub all possible orb commands to simulate CLI not installed
-        allow(cli_class).to receive(:`).with('which orb 2>/dev/null').and_return('')
-        allow(cli_class).to receive(:`).with('orb --version 2>/dev/null').and_return('')
-        allow(cli_class).to receive(:`).with('orb status 2>/dev/null').and_return('')
-        allow($CHILD_STATUS).to receive(:success?).and_return(false)
+        allow(cli_class).to receive(:execute_command)
+          .and_return(['', false])
       end
 
       it 'returns consistent false/nil values across all checks' do

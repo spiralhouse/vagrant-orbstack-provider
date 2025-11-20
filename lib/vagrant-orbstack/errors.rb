@@ -5,7 +5,7 @@ module VagrantPlugins
     # Base error class for OrbStack provider errors.
     # Inherits from Vagrant's VagrantError to integrate with Vagrant's error handling.
     class Errors < Vagrant::Errors::VagrantError
-      error_namespace("vagrant_orbstack.errors")
+      error_namespace('vagrant_orbstack.errors')
     end
 
     # Error raised when OrbStack is not installed.

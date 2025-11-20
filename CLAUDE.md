@@ -499,6 +499,20 @@ All command and skill artifacts are stored in `.claude/`:
 - Reference Linear issues in commits (e.g., `feat: add provider class [SPI-1132]`)
 - Include co-author attribution for AI assistance
 
+**Git Hooks (Quality Gates):**
+
+- ALWAYS install git hooks on first setup: `./bin/install-git-hooks`
+- Hooks mirror CI checks locally (RuboCop, RSpec, gem build)
+- Pre-push hook catches issues before they reach CI
+- NEVER bypass hooks without good reason (use `--no-verify` sparingly)
+- See `docs/GIT_HOOKS.md` for complete documentation
+
+**Why Hooks Matter:**
+- Shift-left testing: Catch failures locally, not in CI
+- Faster feedback: Know immediately if changes break builds
+- Cleaner PR history: No "fix CI" commits
+- Team efficiency: Don't waste CI minutes on preventable failures
+
 ### Testing Philosophy
 
 - **Test First**: Write tests before implementation (TDD RED phase)
