@@ -8,6 +8,7 @@ source 'https://rubygems.org'
 
 group :development, :test do
   gem 'pry', '~> 0.14'
+  gem 'rake', '~> 13.0'
   gem 'rspec', '~> 3.12'
   gem 'rubocop', '~> 1.50'
   gem 'simplecov', '~> 0.22', require: false

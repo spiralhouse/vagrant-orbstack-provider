@@ -195,20 +195,23 @@ git commit -m "test: add integration tests for machine lifecycle [SPI-1144]"
 ### Running Tests
 
 ```bash
-# Run all tests
-bundle exec rspec
+# Run all unit tests (excludes integration tests)
+bundle exec rake spec
+# or simply:
+bundle exec rake
 
-# Run specific test file
-bundle exec rspec spec/vagrant-orbstack/plugin_spec.rb
+# Run integration tests only
+bundle exec rake spec:integration
 
-# Run specific test by line number
-bundle exec rspec spec/vagrant-orbstack/plugin_spec.rb:42
+# Run all tests (unit + integration)
+bundle exec rake spec:all
 
-# Run with documentation format (verbose)
-bundle exec rspec --format documentation
-
-# Run with backtrace for debugging
-bundle exec rspec --backtrace
+# Alternative: Direct RSpec commands
+bundle exec rspec                                     # All tests
+bundle exec rspec spec/vagrant-orbstack/plugin_spec.rb  # Specific file
+bundle exec rspec spec/vagrant-orbstack/plugin_spec.rb:42  # Specific test
+bundle exec rspec --format documentation              # Verbose output
+bundle exec rspec --backtrace                         # With backtrace
 ```
 
 ### Test Structure
@@ -340,19 +343,59 @@ open doc/index.html
 - **Class length**: Keep classes focused on single responsibility
 - **Comments**: Write self-documenting code; use comments for "why", not "what"
 
+### Build Automation (Rakefile)
+
+The project includes a Rakefile with common development tasks:
+
+```bash
+# List all available tasks
+bundle exec rake -T
+
+# Run tests (default task)
+bundle exec rake           # Runs unit tests
+bundle exec rake spec      # Runs unit tests (explicit)
+
+# Test variants
+bundle exec rake spec:integration  # Integration tests only
+bundle exec rake spec:all          # All tests (unit + integration)
+
+# Build and package
+bundle exec rake build     # Build gem to pkg/ directory
+bundle exec rake install   # Build and install gem locally
+bundle exec rake clean     # Remove build artifacts
+
+# Release (future use)
+bundle exec rake release   # Build, tag, and push to RubyGems
+```
+
+**Task Descriptions:**
+- **spec**: Runs unit tests (excludes integration tests to prevent recursion)
+- **spec:integration**: Runs integration tests for Rakefile tasks
+- **spec:all**: Runs complete test suite (unit + integration)
+- **build**: Creates `.gem` file in `pkg/` directory
+- **install**: Builds and installs gem to local gem repository
+- **clean**: Removes `pkg/` directory and build artifacts
+- **release**: Tags version and publishes to RubyGems (requires credentials)
+
 ## Local Testing with Vagrant
 
 ### Building and Installing the Gem
 
 ```bash
-# Build gem
+# Build gem using Rake
+bundle exec rake build
+
+# Alternative: Direct gem build command
 gem build vagrant-orbstack.gemspec
 
-# Install plugin
+# Install plugin to Vagrant
 vagrant plugin install pkg/vagrant-orbstack-0.1.0.gem
 
 # Verify installation
 vagrant plugin list
+
+# Clean build artifacts
+bundle exec rake clean
 ```
 
 ### Updating After Code Changes
@@ -361,9 +404,12 @@ vagrant plugin list
 # Uninstall old version
 vagrant plugin uninstall vagrant-orbstack
 
-# Rebuild and reinstall
-gem build vagrant-orbstack.gemspec
+# Rebuild and reinstall using Rake
+bundle exec rake build
 vagrant plugin install pkg/vagrant-orbstack-0.1.0.gem
+
+# Alternative: One-step install (builds if needed)
+bundle exec rake install
 ```
 
 ### Testing with Vagrantfile
