@@ -37,3 +37,10 @@ Lint/EmptyClass:
 # Will be enabled before first RubyGems.org release
 Gemspec/RequireMFA:
   Enabled: false
+
+# Provider class is acceptable at 104 lines (class-level, not method-level)
+# Per code review SPI-1199: All method-level metrics are compliant
+# Will be refactored if grows beyond ~150 lines
+Metrics/ClassLength:
+  Exclude:
+    - 'lib/vagrant-orbstack/provider.rb'
