@@ -2,6 +2,7 @@
 
 require 'json'
 require 'fileutils'
+require 'vagrant-orbstack/util/state_cache'
 
 module VagrantPlugins
   module OrbStack
@@ -44,12 +45,37 @@ module VagrantPlugins
 
       # Return current machine state.
       #
+      # Queries OrbStack CLI to determine the current state of the machine.
+      # Results are cached with a 5-second TTL to reduce redundant CLI calls.
+      # State is automatically invalidated when state-changing actions occur.
+      #
       # @return [Vagrant::MachineState] Current state of the machine
       # @api public
-      # @todo Implement actual state detection (tracked in future stories)
       def state
-        # Stub for now - will be implemented in future stories
-        Vagrant::MachineState.new(:not_created, 'not created', 'Machine does not exist')
+        # Return early if machine ID is nil
+        return not_created_state('The machine has not been created') if @machine.id.nil?
+
+        # Check cache first
+        cached_state = state_cache.get(@machine.id)
+        return cached_state if cached_state
+
+        # Cache miss: Query OrbStack CLI
+        query_and_cache_state
+      rescue StandardError => e
+        # Handle query errors gracefully
+        handle_state_query_error(e)
+      end
+
+      # Invalidate the state cache.
+      #
+      # Clears all cached state entries, forcing the next state query to
+      # fetch fresh data from OrbStack CLI. This is typically called by
+      # action middleware after state-changing operations (create, start, stop).
+      #
+      # @return [void]
+      # @api public
+      def invalidate_state_cache
+        state_cache.invalidate_all
       end
 
       # Human-readable provider description.
@@ -162,6 +188,83 @@ module VagrantPlugins
       end
 
       private
+
+      # Get the state cache instance.
+      #
+      # Lazy-initializes a StateCache instance with 5-second TTL.
+      # The cache is shared across all state queries for this provider instance.
+      #
+      # @return [Util::StateCache] The state cache instance
+      # @api private
+      def state_cache
+        @state_cache ||= Util::StateCache.new(ttl: 5)
+      end
+
+      # Map OrbStack machine info to Vagrant state tuple.
+      #
+      # Converts OrbStack machine status to Vagrant state representation.
+      # Returns a tuple of [state_id, short_description, long_description].
+      #
+      # @param machine_info [Hash, nil] Machine info from OrbStack CLI with :name and :status,
+      #   or nil if machine was not found
+      # @return [Array<Symbol, String, String>] Tuple of [state_id, short_desc, long_desc]
+      # @api private
+      def map_orbstack_state_to_vagrant(machine_info)
+        if machine_info.nil?
+          [:not_created, 'not created', 'Machine does not exist in OrbStack']
+        elsif machine_info[:status] == 'running'
+          [:running, 'running', 'Machine is running in OrbStack']
+        elsif machine_info[:status] == 'stopped'
+          [:stopped, 'stopped', 'Machine is stopped']
+        else
+          # Unknown state - treat as not created
+          [:not_created, 'unknown', 'Machine state is unknown']
+        end
+      end
+
+      # Create a :not_created MachineState with appropriate description.
+      #
+      # @param reason [String] The reason the machine is not created
+      # @return [Vagrant::MachineState] A not_created state object
+      # @api private
+      def not_created_state(reason)
+        Vagrant::MachineState.new(:not_created, 'not created', reason)
+      end
+
+      # Query OrbStack CLI for current machine state and cache result.
+      #
+      # @return [Vagrant::MachineState] The queried machine state
+      # @api private
+      def query_and_cache_state
+        machines = Util::OrbStackCLI.list_machines
+        our_machine = machines.find { |m| m[:name] == @machine.id }
+
+        # Map OrbStack state to Vagrant state
+        state_id, short_desc, long_desc = map_orbstack_state_to_vagrant(our_machine)
+
+        # Create MachineState and cache it
+        machine_state = Vagrant::MachineState.new(state_id, short_desc, long_desc)
+        state_cache.set(@machine.id, machine_state)
+
+        machine_state
+      end
+
+      # Handle error during state query and return not_created state.
+      #
+      # @param error [Exception] The error that occurred
+      # @return [Vagrant::MachineState] A not_created state object
+      # @api private
+      def handle_state_query_error(error)
+        if error.is_a?(CommandTimeoutError)
+          @machine.ui.warn('OrbStack: Command timeout querying machine state')
+          @logger.warn("State query timed out: #{error.message}")
+          not_created_state('Timeout querying machine state')
+        else
+          @machine.ui.warn("OrbStack: Error querying machine state: #{error.message}")
+          @logger.error("Failed to query machine state: #{error.message}")
+          not_created_state('Error querying machine state')
+        end
+      end
 
       # Path to the machine ID file.
       #
