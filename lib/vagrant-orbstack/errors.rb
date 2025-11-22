@@ -22,5 +22,10 @@ module VagrantPlugins
     class CommandExecutionError < Errors
       error_key(:command_execution_error)
     end
+
+    # Error raised when an OrbStack CLI command times out.
+    class CommandTimeoutError < Errors
+      error_key(:command_timeout_error)
+    end
   end
 end
