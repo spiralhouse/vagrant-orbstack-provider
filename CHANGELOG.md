@@ -7,11 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Machine state query implementation (SPI-1199):
+  - Provider#state method returns accurate Vagrant::MachineState by querying OrbStack CLI
+  - StateCache utility class with 5-second TTL for performance optimization
+  - State mapping: OrbStack states (running, stopped) → Vagrant states (:running, :stopped, :not_created)
+  - Cache invalidation support (per-key via `invalidate(key)` and global via `invalidate_all`)
+  - Graceful error handling for CLI failures and timeouts
+- OrbStack CLI integration wrapper (partial):
+  - `list_machines` method for retrieving all OrbStack machines
+  - `machine_info(name)` method for querying specific machine details
+  - Command execution with timeout support (default 30 seconds)
+  - Error handling (CommandTimeoutError, CommandExecutionError)
+- Comprehensive test coverage:
+  - 67 new tests for state management (35 StateCache unit tests + 32 Provider state tests)
+  - 283 total tests passing (up from 39 in v0.1.0)
+  - 100% coverage of implemented state management features
+
+### Changed
+- Provider interface: `state()` method fully implemented (was stub in v0.1.0)
+- `vagrant status` command now works and returns accurate machine state
+
 ### Planned
 - Machine lifecycle operations (create, start, stop, destroy)
 - SSH integration for remote access
-- State detection and reporting
-- OrbStack CLI wrapper and integration
+- OrbStack CLI wrapper completion (create, delete, start, stop commands)
 - Provisioner support (Shell, Ansible, Chef, Puppet)
 - Synced folder configuration
 - Error handling and recovery mechanisms

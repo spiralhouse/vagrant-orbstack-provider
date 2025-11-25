@@ -93,7 +93,7 @@ vagrant halt
 vagrant destroy
 ```
 
-> **Important Note**: Most provider features are stubs in v0.1.0. The commands above will execute but machine lifecycle operations are not yet implemented. See [Project Status](#project-status) for what's currently functional.
+> **Important Note**: Machine lifecycle operations (create, start, stop, destroy) are not yet implemented. However, `vagrant status` now works and returns accurate machine state by querying OrbStack. See [Project Status](#project-status) for what's currently functional.
 
 ## Configuration
 
@@ -246,25 +246,44 @@ The provider supports the following Linux distributions available in OrbStack:
 
 ## Project Status
 
-### Implemented (v0.1.0)
+### Implemented
 
-- Plugin registration and gem structure (SPI-1130)
-- Configuration class with `distro`, `version`, `machine_name` attributes
-- Provider interface (stubs only)
-- Test infrastructure (RSpec)
-- YARD documentation for public APIs
-- 39 passing tests with 100% coverage of implemented features
-- RuboCop clean (0 offenses)
+- **Foundation (v0.1.0)**:
+  - Plugin registration and gem structure (SPI-1130)
+  - Configuration class with `distro`, `version`, `machine_name` attributes
+  - Provider interface foundation
+  - Test infrastructure (RSpec)
+  - YARD documentation for public APIs
+  - RuboCop clean (0 offenses)
+
+- **State Management (v0.2.0-dev)**:
+  - Machine state query implementation (SPI-1199)
+  - Provider#state method returns accurate Vagrant::MachineState
+  - StateCache utility with 5-second TTL for performance optimization
+  - State mapping: OrbStack states (running, stopped) → Vagrant states (:running, :stopped, :not_created)
+  - Cache invalidation support (per-key and global)
+  - Graceful error handling for CLI failures and timeouts
+
+- **OrbStack CLI Integration (partial)**:
+  - CLI wrapper with command execution and timeout support
+  - Machine listing and info retrieval (SPI-1198)
+  - Error handling (CommandTimeoutError, CommandExecutionError)
+  - Logging infrastructure throughout provider components
+
+- **Test Coverage**:
+  - 283 passing tests with comprehensive coverage
+  - 67 new tests for state management
+  - 100% coverage of implemented features
 
 ### Planned (MVP - v0.2.0+)
 
 - Machine lifecycle operations (create, start, stop, destroy)
-- SSH integration
-- State detection and reporting
-- OrbStack CLI integration
-- Provisioner support
-- Synced folder support
-- Error handling and recovery
+- SSH integration for remote access
+- OrbStack CLI wrapper completion (create, delete, start, stop commands)
+- Provisioner support (Shell, Ansible, Chef, Puppet)
+- Synced folder configuration
+- Error handling and recovery mechanisms
+- Additional Linux distribution support
 
 For complete roadmap, see [`docs/PRD.md`](./docs/PRD.md).
 
