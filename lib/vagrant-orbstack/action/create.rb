@@ -117,24 +117,27 @@ module VagrantPlugins
 
           ui.info('Creating new machine...')
 
-          # Generate unique machine name
           machine_name = Util::MachineNamer.generate(machine)
-
-          # Build distribution string
-          config = machine.provider_config
-          distro = if config.version
-                     "#{config.distro}:#{config.version}"
-                   else
-                     config.distro
-                   end
-
-          # Create machine via OrbStack CLI
+          distro = build_distribution_string(machine.provider_config)
           Util::OrbStackCLI.create_machine(machine_name, distribution: distro)
 
-          # Persist machine metadata
           persist_metadata(env, machine_name, distro)
 
           ui.info("Machine '#{machine_name}' created successfully")
+        end
+
+        # Build distribution string from configuration.
+        #
+        # Formats the distribution string for OrbStack CLI based on
+        # configured distro and version. If version is specified, returns
+        # "distro:version", otherwise just "distro".
+        #
+        # @param config [VagrantPlugins::OrbStack::Config] Provider configuration
+        # @return [String] Formatted distribution string
+        # @api private
+        def build_distribution_string(config)
+          return config.distro unless config.version
+          "#{config.distro}:#{config.version}"
         end
 
         # Persist machine metadata to Vagrant data directory.
