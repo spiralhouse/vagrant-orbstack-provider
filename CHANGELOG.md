@@ -8,33 +8,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Machine state query implementation (SPI-1199):
+
+- **Machine Creation and Naming** ([SPI-1200](https://linear.app/spiral-house/issue/SPI-1200))
+  - `vagrant up --provider=orbstack` creates and starts OrbStack machines
+  - Automatic machine naming with format `vagrant-<name>-<short-id>`
+  - Idempotent operations (safe to run `vagrant up` multiple times)
+  - Multi-machine support with unique name collision avoidance
+  - State-aware creation (checks if machine exists before creating)
+  - MachineNamer utility class for generating unique names
+  - Create action middleware for handling machine creation workflow
+  - MachineNameCollisionError for handling naming conflicts
+
+- **Machine State Query** ([SPI-1199](https://linear.app/spiral-house/issue/SPI-1199))
   - Provider#state method returns accurate Vagrant::MachineState by querying OrbStack CLI
   - StateCache utility class with 5-second TTL for performance optimization
   - State mapping: OrbStack states (running, stopped) → Vagrant states (:running, :stopped, :not_created)
   - Cache invalidation support (per-key via `invalidate(key)` and global via `invalidate_all`)
   - Graceful error handling for CLI failures and timeouts
-- OrbStack CLI integration wrapper (partial):
+
+- **OrbStack CLI Integration** ([SPI-1198](https://linear.app/spiral-house/issue/SPI-1198), SPI-1200)
   - `list_machines` method for retrieving all OrbStack machines
   - `machine_info(name)` method for querying specific machine details
+  - `create_machine(name, distribution:)` method for creating new machines
+  - `start_machine(name)` method for starting stopped machines
   - Command execution with timeout support (default 30 seconds)
-  - Error handling (CommandTimeoutError, CommandExecutionError)
-- Comprehensive test coverage:
-  - 67 new tests for state management (35 StateCache unit tests + 32 Provider state tests)
-  - 283 total tests passing (up from 39 in v0.1.0)
-  - 100% coverage of implemented state management features
+  - Error handling (CommandTimeoutError, CommandExecutionError, MachineNameCollisionError)
+
+- **Test Coverage**:
+  - 80 new tests for machine creation functionality
+  - 363 total tests passing (99.5% pass rate)
+  - 100% coverage of implemented creation and naming features
 
 ### Changed
-- Provider interface: `state()` method fully implemented (was stub in v0.1.0)
-- `vagrant status` command now works and returns accurate machine state
+
+- **Provider Interface**:
+  - `state()` method fully implemented with machine state querying
+  - `action(name)` method now returns proper Vagrant::Action::Builder instance
+  - `vagrant status` command now works and returns accurate machine state
+
+- **OrbStackCLI API Changes**:
+  - `create_machine(name, distribution:)` - name parameter first, distribution as keyword
+  - `create_machine` and `start_machine` now return `{ id:, status: }` hash instead of boolean
+  - More consistent with Vagrant conventions and provides machine information
+  - All CLI methods now include comprehensive logging
 
 ### Planned
-- Machine lifecycle operations (create, start, stop, destroy)
+
 - SSH integration for remote access
-- OrbStack CLI wrapper completion (create, delete, start, stop commands)
+- Machine start, stop, destroy operations
 - Provisioner support (Shell, Ansible, Chef, Puppet)
 - Synced folder configuration
-- Error handling and recovery mechanisms
 - Additional Linux distribution support
 
 ## [0.1.0] - 2025-11-17

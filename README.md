@@ -67,12 +67,11 @@ Create a `Vagrantfile` in your project directory:
 
 ```ruby
 Vagrant.configure("2") do |config|
-  config.vm.box = "ubuntu"  # Currently ignored - to be implemented
+  config.vm.box = "ubuntu"
 
   config.vm.provider :orbstack do |os|
     os.distro = "ubuntu"
     os.version = "22.04"
-    os.machine_name = "my-dev-env"
   end
 end
 ```
@@ -82,6 +81,9 @@ Basic commands:
 ```bash
 # Create and start the machine
 vagrant up --provider=orbstack
+
+# Check machine status
+vagrant status
 
 # SSH into the machine
 vagrant ssh
@@ -93,7 +95,76 @@ vagrant halt
 vagrant destroy
 ```
 
-> **Important Note**: Machine lifecycle operations (create, start, stop, destroy) are not yet implemented. However, `vagrant status` now works and returns accurate machine state by querying OrbStack. See [Project Status](#project-status) for what's currently functional.
+## Usage
+
+### Creating a Machine
+
+Create and start an OrbStack machine with Vagrant:
+
+```bash
+vagrant up --provider=orbstack
+```
+
+This will:
+- Create a new OrbStack machine with automatic naming
+- Start the machine immediately
+- Be idempotent (safe to run multiple times—existing machines are not recreated)
+
+### Machine Naming
+
+Machines are automatically named using the convention:
+- Format: `vagrant-<machine-name>-<short-id>`
+- Example: `vagrant-default-a3b2c1`
+- The short ID ensures uniqueness for multi-machine setups
+
+The machine name can be customized in your Vagrantfile:
+
+```ruby
+Vagrant.configure("2") do |config|
+  config.vm.provider :orbstack do |os|
+    os.machine_name = "my-dev-env"
+  end
+end
+```
+
+With this configuration, your machine will be named `vagrant-my-dev-env-<short-id>`.
+
+### Multi-Machine Support
+
+Define multiple machines in your Vagrantfile:
+
+```ruby
+Vagrant.configure("2") do |config|
+  config.vm.define "web" do |web|
+    web.vm.provider "orbstack" do |orbstack|
+      orbstack.distro = "ubuntu"
+      orbstack.version = "noble"
+    end
+  end
+
+  config.vm.define "db" do |db|
+    db.vm.provider "orbstack" do |orbstack|
+      orbstack.distro = "debian"
+    end
+  end
+end
+```
+
+Each machine gets a unique name (e.g., `vagrant-web-a3b2c1`, `vagrant-db-d4e5f6`). You can manage them individually:
+
+```bash
+# Create web machine
+vagrant up web --provider=orbstack
+
+# Create db machine
+vagrant up db --provider=orbstack
+
+# Check status of all machines
+vagrant status
+
+# SSH into web machine
+vagrant ssh web
+```
 
 ## Configuration
 
@@ -264,22 +335,32 @@ The provider supports the following Linux distributions available in OrbStack:
   - Cache invalidation support (per-key and global)
   - Graceful error handling for CLI failures and timeouts
 
+- **Machine Creation and Naming (v0.2.0-dev)**:
+  - Machine creation via `vagrant up --provider=orbstack` (SPI-1200)
+  - Automatic machine naming with format `vagrant-<name>-<short-id>`
+  - Idempotent operations (safe to run multiple times)
+  - Multi-machine support with unique name generation
+  - State-aware creation (checks if machine exists before creating)
+  - MachineNamer utility for unique name generation
+  - Create action middleware implementation
+
 - **OrbStack CLI Integration (partial)**:
   - CLI wrapper with command execution and timeout support
   - Machine listing and info retrieval (SPI-1198)
-  - Error handling (CommandTimeoutError, CommandExecutionError)
+  - Machine creation and lifecycle methods (SPI-1200)
+  - Error handling (CommandTimeoutError, CommandExecutionError, MachineNameCollisionError)
   - Logging infrastructure throughout provider components
 
 - **Test Coverage**:
-  - 283 passing tests with comprehensive coverage
-  - 67 new tests for state management
+  - 363 passing tests with comprehensive coverage
+  - 99.5% test pass rate
   - 100% coverage of implemented features
 
 ### Planned (MVP - v0.2.0+)
 
-- Machine lifecycle operations (create, start, stop, destroy)
 - SSH integration for remote access
-- OrbStack CLI wrapper completion (create, delete, start, stop commands)
+- Machine start, stop, destroy operations
+- OrbStack CLI wrapper completion (delete, start, stop commands)
 - Provisioner support (Shell, Ansible, Chef, Puppet)
 - Synced folder configuration
 - Error handling and recovery mechanisms
