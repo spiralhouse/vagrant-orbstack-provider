@@ -53,9 +53,9 @@ module VagrantPlugins
       # @api public
       def initialize
         super
-        @distro = Vagrant::UNSET_VALUE
-        @version = Vagrant::UNSET_VALUE
-        @machine_name = Vagrant::UNSET_VALUE
+        @distro = UNSET_VALUE
+        @version = UNSET_VALUE
+        @machine_name = UNSET_VALUE
         @logger = Log4r::Logger.new('vagrant_orbstack::config')
       end
 
@@ -66,9 +66,9 @@ module VagrantPlugins
       #
       # @api public
       def finalize!
-        @distro = 'ubuntu' if @distro == Vagrant::UNSET_VALUE
-        @version = nil if @version == Vagrant::UNSET_VALUE
-        @machine_name = nil if @machine_name == Vagrant::UNSET_VALUE
+        @distro = 'ubuntu' if @distro == UNSET_VALUE
+        @version = nil if @version == UNSET_VALUE
+        @machine_name = nil if @machine_name == UNSET_VALUE
       end
 
       # Validate configuration values.
