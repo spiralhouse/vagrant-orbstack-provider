@@ -27,5 +27,26 @@ module VagrantPlugins
     class CommandTimeoutError < Errors
       error_key(:command_timeout_error)
     end
+
+    # Error raised when machine name collision cannot be resolved after retries.
+    class MachineNameCollisionError < Errors
+      error_key(:machine_name_collision)
+    end
+
+    # Reopen Errors class to add nested constants for namespaced access
+    # This allows both VagrantPlugins::OrbStack::CommandTimeoutError
+    # and VagrantPlugins::OrbStack::Errors::CommandTimeoutError to work
+    class Errors
+      # Alias error classes inside Errors namespace for tests that expect them there
+      OrbStackNotInstalled = ::VagrantPlugins::OrbStack::OrbStackNotInstalled
+      OrbStackNotInstalledError = OrbStackNotInstalled
+      OrbStackNotRunning = ::VagrantPlugins::OrbStack::OrbStackNotRunning
+      CommandExecutionError = ::VagrantPlugins::OrbStack::CommandExecutionError
+      CommandTimeoutError = ::VagrantPlugins::OrbStack::CommandTimeoutError
+      MachineNameCollisionError = ::VagrantPlugins::OrbStack::MachineNameCollisionError
+
+      # Alias for CLI errors
+      OrbStackCLIError = CommandExecutionError
+    end
   end
 end

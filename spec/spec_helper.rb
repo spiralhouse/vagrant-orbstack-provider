@@ -123,6 +123,25 @@ unless defined?(Vagrant)
       end
     end
 
+    module Action
+      class Builder
+        def initialize
+          @stack = []
+        end
+
+        def use(middleware_class)
+          @stack << middleware_class
+        end
+
+        def call(env)
+          # Mock middleware execution
+          @stack.each do |middleware|
+            middleware.new(->(_) {}, env).call(env)
+          end
+        end
+      end
+    end
+
     module Errors
       class VagrantError < StandardError
         def self.error_namespace(namespace = nil)
