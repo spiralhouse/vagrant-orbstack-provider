@@ -38,7 +38,7 @@ module VagrantPlugins
           Vagrant::Action::Builder.new.tap do |b|
             b.use Action::Create
           end
-        # Return nil for unsupported actions (future stories: :halt, :destroy, etc.)
+          # Return nil for unsupported actions (future stories: :halt, :destroy, etc.)
         end
       end
 

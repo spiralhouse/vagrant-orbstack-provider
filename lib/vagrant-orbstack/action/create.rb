@@ -137,6 +137,7 @@ module VagrantPlugins
         # @api private
         def build_distribution_string(config)
           return config.distro unless config.version
+
           "#{config.distro}:#{config.version}"
         end
 
