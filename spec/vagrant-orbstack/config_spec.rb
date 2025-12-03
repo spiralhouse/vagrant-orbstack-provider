@@ -56,21 +56,21 @@ RSpec.describe 'VagrantPlugins::OrbStack::Config' do
       require 'vagrant-orbstack/config'
       config = VagrantPlugins::OrbStack::Config.new
 
-      expect(config.distro).to eq(Vagrant::UNSET_VALUE)
+      expect(config.distro).to eq(VagrantPlugins::OrbStack::UNSET_VALUE)
     end
 
     it 'initializes version as UNSET_VALUE before finalize' do
       require 'vagrant-orbstack/config'
       config = VagrantPlugins::OrbStack::Config.new
 
-      expect(config.version).to eq(Vagrant::UNSET_VALUE)
+      expect(config.version).to eq(VagrantPlugins::OrbStack::UNSET_VALUE)
     end
 
     it 'initializes machine_name as UNSET_VALUE before finalize' do
       require 'vagrant-orbstack/config'
       config = VagrantPlugins::OrbStack::Config.new
 
-      expect(config.machine_name).to eq(Vagrant::UNSET_VALUE)
+      expect(config.machine_name).to eq(VagrantPlugins::OrbStack::UNSET_VALUE)
     end
 
     # ============================================================================

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'vagrant-orbstack'
+
 module VagrantPlugins
   module OrbStack
     # Configuration class for OrbStack provider.
@@ -53,9 +55,9 @@ module VagrantPlugins
       # @api public
       def initialize
         super
-        @distro = UNSET_VALUE
-        @version = UNSET_VALUE
-        @machine_name = UNSET_VALUE
+        @distro = VagrantPlugins::OrbStack::UNSET_VALUE
+        @version = VagrantPlugins::OrbStack::UNSET_VALUE
+        @machine_name = VagrantPlugins::OrbStack::UNSET_VALUE
         @logger = Log4r::Logger.new('vagrant_orbstack::config')
       end
 
@@ -66,9 +68,9 @@ module VagrantPlugins
       #
       # @api public
       def finalize!
-        @distro = 'ubuntu' if @distro == UNSET_VALUE
-        @version = nil if @version == UNSET_VALUE
-        @machine_name = nil if @machine_name == UNSET_VALUE
+        @distro = 'ubuntu' if @distro == VagrantPlugins::OrbStack::UNSET_VALUE
+        @version = nil if @version == VagrantPlugins::OrbStack::UNSET_VALUE
+        @machine_name = nil if @machine_name == VagrantPlugins::OrbStack::UNSET_VALUE
       end
 
       # Validate configuration values.
