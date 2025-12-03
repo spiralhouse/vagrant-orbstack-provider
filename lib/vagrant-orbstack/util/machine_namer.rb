@@ -79,6 +79,9 @@ module VagrantPlugins
         class << self
           private
 
+          # Method length acceptable: Each transformation step is clear and well-documented.
+          # Combining steps would reduce readability.
+          # rubocop:disable Metrics/MethodLength
           def sanitize_name(name)
             # Handle nil or empty input → default
             return 'default' if name.nil? || name.strip.empty?
@@ -104,6 +107,7 @@ module VagrantPlugins
             max_length = MAX_NAME_LENGTH - 15
             sanitized[0...max_length]
           end
+          # rubocop:enable Metrics/MethodLength
 
           # Check if a machine name already exists in OrbStack.
           #

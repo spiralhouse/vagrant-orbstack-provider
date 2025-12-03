@@ -168,7 +168,9 @@ RSpec.describe 'Machine Creation Integration' do
                                 provider_config: custom_config,
                                 ui: ui,
                                 data_dir: Pathname.new('/tmp/vagrant-integration-test-custom'))
-        allow(custom_machine).to receive(:provider).and_return(provider)
+        # Create provider with custom_machine so @machine.data_dir matches
+        custom_provider = VagrantPlugins::OrbStack::Provider.new(custom_machine)
+        allow(custom_machine).to receive(:provider).and_return(custom_provider)
         allow(SecureRandom).to receive(:hex).with(3).and_return('b4c5d6')
 
         allow(VagrantPlugins::OrbStack::Util::OrbStackCLI).to receive(:list_machines)
@@ -204,7 +206,9 @@ RSpec.describe 'Machine Creation Integration' do
                                provider_config: provider_config,
                                ui: ui,
                                data_dir: Pathname.new('/tmp/vagrant-integration-test-named'))
-        allow(named_machine).to receive(:provider).and_return(provider)
+        # Create provider with named_machine so @machine.data_dir matches
+        named_provider = VagrantPlugins::OrbStack::Provider.new(named_machine)
+        allow(named_machine).to receive(:provider).and_return(named_provider)
         allow(SecureRandom).to receive(:hex).with(3).and_return('c6d7e8')
 
         allow(VagrantPlugins::OrbStack::Util::OrbStackCLI).to receive(:list_machines)
