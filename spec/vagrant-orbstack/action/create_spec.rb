@@ -179,7 +179,7 @@ RSpec.describe 'VagrantPlugins::OrbStack::Action::Create' do
       before do
         # Mock Provider#state to return :not_created
         not_created_state = Vagrant::MachineState.new(:not_created, 'not created',
-                                                       'Machine does not exist')
+                                                      'Machine does not exist')
         allow(provider).to receive(:state).and_return(not_created_state)
       end
 
@@ -230,7 +230,7 @@ RSpec.describe 'VagrantPlugins::OrbStack::Action::Create' do
       before do
         # Mock not_created state
         not_created_state = Vagrant::MachineState.new(:not_created, 'not created',
-                                                       'Machine does not exist')
+                                                      'Machine does not exist')
         allow(provider).to receive(:state).and_return(not_created_state)
       end
 
@@ -338,7 +338,7 @@ RSpec.describe 'VagrantPlugins::OrbStack::Action::Create' do
       before do
         # Mock not_created state
         not_created_state = Vagrant::MachineState.new(:not_created, 'not created',
-                                                       'Machine does not exist')
+                                                      'Machine does not exist')
         allow(provider).to receive(:state).and_return(not_created_state)
 
         # Mock MachineNamer
@@ -455,7 +455,7 @@ RSpec.describe 'VagrantPlugins::OrbStack::Action::Create' do
       before do
         # Mock not_created state
         not_created_state = Vagrant::MachineState.new(:not_created, 'not created',
-                                                       'Machine does not exist')
+                                                      'Machine does not exist')
         allow(provider).to receive(:state).and_return(not_created_state)
       end
 

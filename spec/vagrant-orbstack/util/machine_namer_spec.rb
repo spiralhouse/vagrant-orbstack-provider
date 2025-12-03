@@ -176,7 +176,7 @@ RSpec.describe 'VagrantPlugins::OrbStack::Util::MachineNamer' do
       it 'handles multiple collisions before success' do
         # Arrange - two collisions, third attempt succeeds
         allow(SecureRandom).to receive(:hex).with(3)
-          .and_return('a3b2c1', 'd4e5f6', 'g7h8i9')
+                                            .and_return('a3b2c1', 'd4e5f6', 'g7h8i9')
 
         call_count = 0
         allow(VagrantPlugins::OrbStack::Util::OrbStackCLI).to receive(:list_machines) do
@@ -202,7 +202,7 @@ RSpec.describe 'VagrantPlugins::OrbStack::Util::MachineNamer' do
       it 'raises error after max retries (3) exceeded' do
         # Arrange - all 3 attempts result in collision
         allow(SecureRandom).to receive(:hex).with(3)
-          .and_return('a3b2c1', 'd4e5f6', 'g7h8i9')
+                                            .and_return('a3b2c1', 'd4e5f6', 'g7h8i9')
 
         # All attempts collide
         allow(VagrantPlugins::OrbStack::Util::OrbStackCLI).to receive(:list_machines)

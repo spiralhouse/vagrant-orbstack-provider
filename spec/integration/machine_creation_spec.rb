@@ -451,7 +451,7 @@ RSpec.describe 'Machine Creation Integration' do
 
     it 'generates unique names for each machine in Vagrantfile' do
       # Arrange - simulate 3-machine Vagrantfile
-      machines = ['web', 'db', 'cache'].map.with_index do |name, index|
+      machines = %w[web db cache].map.with_index do |name, _index|
         m = double('machine',
                    name: name,
                    id: nil,
@@ -465,7 +465,7 @@ RSpec.describe 'Machine Creation Integration' do
 
       # Mock unique IDs
       allow(SecureRandom).to receive(:hex).with(3)
-        .and_return('111111', '222222', '333333')
+                                          .and_return('111111', '222222', '333333')
 
       allow(VagrantPlugins::OrbStack::Util::OrbStackCLI).to receive(:list_machines)
         .and_return([])
