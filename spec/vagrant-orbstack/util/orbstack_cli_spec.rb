@@ -539,8 +539,9 @@ RSpec.describe 'VagrantPlugins::OrbStack::Util::OrbStackCLI' do
           .and_return(['Machine created successfully', '', true])
       end
 
-      it 'returns true' do
-        expect(cli_class.create_machine('ubuntu', 'vagrant-test')).to be(true)
+      it 'returns hash with id and status' do
+        result = cli_class.create_machine('vagrant-test', distribution: 'ubuntu')
+        expect(result).to eq({ id: 'vagrant-test', status: 'running' })
       end
     end
 
@@ -553,7 +554,7 @@ RSpec.describe 'VagrantPlugins::OrbStack::Util::OrbStackCLI' do
 
       it 'raises CommandExecutionError with stderr' do
         expect do
-          cli_class.create_machine('invalid-distro', 'vagrant-test')
+          cli_class.create_machine('vagrant-test', distribution: 'invalid-distro')
         end.to raise_error(VagrantPlugins::OrbStack::CommandExecutionError, /invalid distribution/)
       end
     end
@@ -567,7 +568,7 @@ RSpec.describe 'VagrantPlugins::OrbStack::Util::OrbStackCLI' do
 
       it 'raises CommandTimeoutError after 120 seconds' do
         expect do
-          cli_class.create_machine('ubuntu', 'slow-machine')
+          cli_class.create_machine('slow-machine', distribution: 'ubuntu')
         end.to raise_error(VagrantPlugins::OrbStack::CommandTimeoutError)
       end
     end
@@ -580,7 +581,8 @@ RSpec.describe 'VagrantPlugins::OrbStack::Util::OrbStackCLI' do
       end
 
       it 'respects custom timeout parameter' do
-        expect(cli_class.create_machine('ubuntu', 'custom-timeout', timeout: 300)).to be(true)
+        result = cli_class.create_machine('custom-timeout', distribution: 'ubuntu', timeout: 300)
+        expect(result).to eq({ id: 'custom-timeout', status: 'running' })
       end
     end
   end
@@ -655,8 +657,9 @@ RSpec.describe 'VagrantPlugins::OrbStack::Util::OrbStackCLI' do
           .and_return(['Machine started successfully', '', true])
       end
 
-      it 'returns true' do
-        expect(cli_class.start_machine('vagrant-test')).to be(true)
+      it 'returns hash with id and status' do
+        result = cli_class.start_machine('vagrant-test')
+        expect(result).to eq({ id: 'vagrant-test', status: 'running' })
       end
     end
 
@@ -696,7 +699,8 @@ RSpec.describe 'VagrantPlugins::OrbStack::Util::OrbStackCLI' do
       end
 
       it 'respects custom timeout parameter' do
-        expect(cli_class.start_machine('custom-timeout', timeout: 180)).to be(true)
+        result = cli_class.start_machine('custom-timeout', timeout: 180)
+        expect(result).to eq({ id: 'custom-timeout', status: 'running' })
       end
     end
   end

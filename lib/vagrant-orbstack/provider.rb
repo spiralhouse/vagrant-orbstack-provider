@@ -3,6 +3,7 @@
 require 'json'
 require 'fileutils'
 require 'vagrant-orbstack/util/state_cache'
+require 'vagrant-orbstack/action/create'
 
 module VagrantPlugins
   module OrbStack
@@ -24,13 +25,21 @@ module VagrantPlugins
 
       # Return action middleware for requested operation.
       #
-      # @param [Symbol] _name The action name
-      # @return [Object, nil] Action middleware (currently stubbed)
+      # Creates and returns an Action::Builder containing the appropriate
+      # middleware stack for the requested operation. Currently only :up
+      # is implemented; other actions return nil.
+      #
+      # @param [Symbol] name The action name (:up, :halt, :destroy, etc.)
+      # @return [Vagrant::Action::Builder, nil] Action middleware builder or nil
       # @api public
-      # @todo Implement action middleware (tracked in future stories)
-      def action(_name)
-        # Stub for now - will be implemented in future stories
-        nil
+      def action(name)
+        case name
+        when :up
+          Vagrant::Action::Builder.new.tap do |b|
+            b.use Action::Create
+          end
+          # Return nil for unsupported actions (future stories: :halt, :destroy, etc.)
+        end
       end
 
       # Provide SSH connection information for the machine.

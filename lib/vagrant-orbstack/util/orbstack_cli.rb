@@ -140,23 +140,23 @@ module VagrantPlugins
           # on first use if the distribution image needs to be downloaded. Subsequent
           # creations of the same distribution are much faster.
           #
-          # @param distro [String] The distribution to use (e.g., 'ubuntu', 'debian')
           # @param name [String] The machine name
+          # @param distribution [String] The distribution to use (e.g., 'ubuntu:noble', 'debian')
           # @param timeout [Integer] Command timeout in seconds (default: CREATE_TIMEOUT)
-          # @return [Boolean] true on success
+          # @return [Hash] Machine info hash with :id and :status keys
           # @raise [CommandExecutionError] If creation fails
           # @raise [CommandTimeoutError] If command times out
           #
           # @example Create an Ubuntu machine
-          #   OrbStackCLI.create_machine('ubuntu', 'my-dev-vm')
+          #   OrbStackCLI.create_machine('my-dev-vm', distribution: 'ubuntu:noble')
           #
           # @example Create with custom timeout for slow networks
-          #   OrbStackCLI.create_machine('ubuntu', 'my-vm', timeout: 180)
+          #   OrbStackCLI.create_machine('my-vm', distribution: 'ubuntu', timeout: 180)
           # rubocop:disable Naming/PredicateMethod
-          def create_machine(distro, name, timeout: CREATE_TIMEOUT)
-            _, stderr, success = execute_command("orb create #{distro} #{name}", timeout: timeout)
+          def create_machine(name, distribution:, timeout: CREATE_TIMEOUT)
+            _, stderr, success = execute_command("orb create #{distribution} #{name}", timeout: timeout)
             raise_unless_successful!('create', stderr, success)
-            true
+            { id: name, status: 'running' }
           end
 
           # Delete an OrbStack machine
@@ -184,7 +184,7 @@ module VagrantPlugins
           #
           # @param name [String] The machine name
           # @param timeout [Integer] Command timeout in seconds (default: MUTATE_TIMEOUT)
-          # @return [Boolean] true on success
+          # @return [Hash] Machine info hash with :id and :status keys
           # @raise [CommandExecutionError] If start fails
           # @raise [CommandTimeoutError] If command times out
           #
@@ -193,7 +193,7 @@ module VagrantPlugins
           def start_machine(name, timeout: MUTATE_TIMEOUT)
             _, stderr, success = execute_command("orb start #{name}", timeout: timeout)
             raise_unless_successful!('start', stderr, success)
-            true
+            { id: name, status: 'running' }
           end
 
           # Stop an OrbStack machine

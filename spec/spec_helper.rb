@@ -12,8 +12,8 @@ if ENV['COVERAGE'] || ENV['CI']
     add_group 'Core', 'lib/vagrant-orbstack'
     add_group 'Actions', 'lib/vagrant-orbstack/action'
 
-    # Minimum coverage threshold
-    minimum_coverage 80
+    # Minimum coverage threshold (skip for integration-only runs)
+    minimum_coverage 80 unless ENV['SKIP_COVERAGE_MINIMUM']
 
     # Generate JSON format for Codecov (Codecov can parse SimpleCov's JSON)
     if ENV['CI']
@@ -120,6 +120,25 @@ unless defined?(Vagrant)
         @id = id
         @short_description = short
         @long_description = long
+      end
+    end
+
+    module Action
+      class Builder
+        def initialize
+          @stack = []
+        end
+
+        def use(middleware_class)
+          @stack << middleware_class
+        end
+
+        def call(env)
+          # Mock middleware execution
+          @stack.each do |middleware|
+            middleware.new(->(_) {}, env).call(env)
+          end
+        end
       end
     end
 
