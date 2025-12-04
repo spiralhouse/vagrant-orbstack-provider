@@ -73,3 +73,4 @@
 .claude/baseline/*
 !.claude/baseline/.gitkeep
 test-env/
+test-vagrant/

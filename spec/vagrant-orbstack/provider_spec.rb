@@ -715,12 +715,12 @@ RSpec.describe 'VagrantPlugins::OrbStack::Provider' do
     end
 
     context 'when requesting unsupported actions' do
-      it 'returns nil for :halt action (not yet implemented)' do
+      it 'returns action builder for :halt action (now implemented)' do
         # Arrange & Act
         action = provider.action(:halt)
 
         # Assert
-        expect(action).to be_nil
+        expect(action).to be_a(Vagrant::Action::Builder)
       end
 
       it 'returns nil for :destroy action (not yet implemented)' do
