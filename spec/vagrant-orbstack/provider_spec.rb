@@ -739,12 +739,12 @@ RSpec.describe 'VagrantPlugins::OrbStack::Provider' do
         expect(action).to be_nil
       end
 
-      it 'returns nil for :reload action (not yet implemented)' do
+      it 'returns action builder for :reload action (now implemented)' do
         # Arrange & Act
         action = provider.action(:reload)
 
         # Assert
-        expect(action).to be_nil
+        expect(action).to be_a(Vagrant::Action::Builder)
       end
 
       it 'returns nil for unknown operations' do

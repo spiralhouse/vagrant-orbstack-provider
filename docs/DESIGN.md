@@ -397,11 +397,114 @@ graph TD
 - Idempotent (safe to start already running machine)
 - **Note**: The Start action is automatically invoked by the Create action when resuming a stopped machine via `vagrant up`
 
+**Reload** (✅ Implemented)
+- Composes Halt + Start actions for restart workflow
+- Optionally includes provisioning via Vagrant's Builtin::Provision
+- Validates machine ID via composed actions (not directly)
+- Executes halt then start sequence via action builder composition
+- Displays user-friendly progress messages from composed actions
+- Supports `--provision` and `--no-provision` flags
+- Idempotent (safe to reload in any state - halt/start handle specifics)
+- **Note**: This is a Composition Action (see "Action Patterns" section) that orchestrates existing actions rather than directly interacting with OrbStack CLI
+
+**Implementation Pattern**:
+- Action class: `lib/vagrant-orbstack/action/reload.rb` (composition marker)
+- Provider registration: `:reload` case in `Provider#action` method
+- Action composition: Halt → Start → (optional) Provision
+- Error handling: Implicit via middleware chain (stops on first failure)
+- State management: Handled by composed Halt and Start actions
+
 **SSH Info**
 - Queries OrbStack for machine details
 - Determines SSH connection parameters
 - Returns hash with host, port, username, auth method
 - Leverages OrbStack's built-in SSH server
+
+### Action Patterns
+
+This provider implements two distinct action patterns for different use cases:
+
+#### Direct Action Pattern
+
+Used when actions need to directly interact with OrbStack CLI and manage state.
+
+**Characteristics**:
+- Includes `MachineValidation` module for ID validation
+- Directly calls `Util::OrbStackCLI` methods
+- Invalidates state cache after state changes
+- Provides user feedback via `env[:ui]`
+
+**Examples**: Create, Halt, Start, Destroy
+
+**Template**:
+```ruby
+class MyAction
+  include MachineValidation
+
+  def initialize(app, env)
+    @app = app
+  end
+
+  def call(env)
+    machine_id = validate_machine_id!(env[:machine], 'operation_name')
+    env[:ui].info("Performing operation...")
+
+    Util::OrbStackCLI.operation(machine_id)
+    env[:machine].provider.invalidate_state_cache
+
+    @app.call(env)
+  end
+end
+```
+
+#### Composition Action Pattern
+
+Used when actions orchestrate existing actions without direct CLI interaction.
+
+**Characteristics**:
+- Does NOT include `MachineValidation` (composed actions validate)
+- Coordinates multiple actions via Action::Builder
+- No direct OrbStack CLI calls
+- State management handled by composed actions
+
+**Examples**: Reload (composes Halt + Start)
+
+**Template**:
+```ruby
+class MyCompositionAction
+  def initialize(app, env)
+    @app = app
+  end
+
+  def call(env)
+    # Optional pre-composition logic
+    @app.call(env)
+    # Optional post-composition logic
+  end
+end
+
+# In Provider#action:
+when :my_operation
+  Vagrant::Action::Builder.new.tap do |b|
+    b.use Action::FirstAction
+    b.use Action::SecondAction
+    b.use Action::MyCompositionAction
+  end
+```
+
+### Choosing the Right Pattern
+
+**Use Direct Action Pattern when**:
+- Performing atomic OrbStack CLI operations
+- Need machine ID validation
+- Managing state cache directly
+- Providing operation-specific user feedback
+
+**Use Composition Action Pattern when**:
+- Orchestrating multiple existing actions
+- No direct CLI interaction needed
+- State management delegated to composed actions
+- Building complex workflows from simple operations
 
 ## Integration Points
 

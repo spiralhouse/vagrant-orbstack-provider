@@ -3,12 +3,31 @@
 module VagrantPlugins
   module OrbStack
     module Action
-      # Shared validation logic for action middleware.
+      # Machine validation mixin for action middleware.
       #
-      # This module provides common validation methods that can be included
-      # in action middleware classes to ensure consistent validation behavior.
+      # This module provides machine ID validation for **Direct Action Pattern**
+      # actions that interact directly with OrbStack CLI. Include this module
+      # when your action needs to validate machine existence before performing
+      # CLI operations.
       #
-      # @example Include in an action
+      # **IMPORTANT**: Do NOT include this module in Composition Actions that
+      # orchestrate other actions. Composition actions delegate validation to
+      # their composed actions to avoid redundant checks.
+      #
+      # ## Usage
+      #
+      # ### Direct Actions (Include this module)
+      # - Create, Halt, Start, Destroy
+      # - Any action that directly calls Util::OrbStackCLI
+      # - Actions that manage state cache directly
+      #
+      # ### Composition Actions (Do NOT include)
+      # - Reload (composes Halt + Start, which both validate)
+      # - Any action that only orchestrates via Action::Builder
+      #
+      # See docs/DESIGN.md "Action Patterns" for complete pattern documentation.
+      #
+      # @example Include in a direct action
       #   class Destroy
       #     include MachineValidation
       #

@@ -29,9 +29,8 @@ module VagrantPlugins
         # @param app [Object] The next middleware in the chain
         # @param env [Hash] The environment hash containing :machine, :ui, etc.
         # @api public
-        def initialize(app, env)
+        def initialize(app, _env)
           @app = app
-          @env = env
         end
 
         # Execute the middleware.

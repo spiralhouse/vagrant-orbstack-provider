@@ -45,6 +45,8 @@ module VagrantPlugins
           Vagrant::Action::Builder.new.tap do |b|
             b.use Action::Halt
           end
+        when :reload
+          build_reload_action
         when :destroy
           Vagrant::Action::Builder.new.tap do |b|
             b.use Action::Destroy
@@ -312,6 +314,33 @@ module VagrantPlugins
       def ensure_data_dir_exists
         dir = @machine.data_dir
         FileUtils.mkdir_p(dir)
+      end
+
+      # Build reload action: Halt → Start → (optional) Provision
+      #
+      # @param env [Hash] Environment hash (unused, for consistency)
+      # @return [Vagrant::Action::Builder] Configured action builder
+      # @api private
+      def build_reload_action(_env = nil)
+        Vagrant::Action::Builder.new.tap do |b|
+          b.use Action::Halt
+          b.use Action::Start
+          include_provisioning(b)
+        end
+      end
+
+      # Include provisioning middleware if available.
+      #
+      # Conditionally includes Vagrant's built-in Provision middleware.
+      # Defensive check ensures compatibility if middleware isn't available.
+      #
+      # @param builder [Vagrant::Action::Builder] Builder to modify
+      # @return [void]
+      # @api private
+      def include_provisioning(builder)
+        return unless defined?(Vagrant::Action::Builtin::Provision)
+
+        builder.use Vagrant::Action::Builtin::Provision
       end
     end
   end
