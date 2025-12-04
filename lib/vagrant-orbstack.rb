@@ -18,6 +18,13 @@ module VagrantPlugins
     autoload :Action, lib_path.join('action')
     autoload :Errors, lib_path.join('errors')
 
+    # Sentinel value to distinguish "not set" from nil.
+    # Used in configuration to differentiate between explicitly set to nil
+    # versus never configured (should use default).
+    #
+    # @api private
+    UNSET_VALUE = ::Object.new.freeze
+
     # Returns the path to the source of this plugin.
     #
     # @return [Pathname] Root directory of the plugin source

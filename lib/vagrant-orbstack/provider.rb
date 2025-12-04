@@ -2,8 +2,10 @@
 
 require 'json'
 require 'fileutils'
+require 'vagrant-orbstack/errors'
 require 'vagrant-orbstack/util/state_cache'
-require 'vagrant-orbstack/action/create'
+require 'vagrant-orbstack/util/orbstack_cli'
+require 'vagrant-orbstack/action'
 
 module VagrantPlugins
   module OrbStack
