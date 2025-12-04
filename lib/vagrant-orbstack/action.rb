@@ -11,6 +11,7 @@ module VagrantPlugins
     module Action
       # Action middleware autoload definitions
       autoload :Create, 'vagrant-orbstack/action/create'
+      autoload :Destroy, 'vagrant-orbstack/action/destroy'
       autoload :Halt, 'vagrant-orbstack/action/halt'
       autoload :Start, 'vagrant-orbstack/action/start'
     end

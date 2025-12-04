@@ -34,6 +34,7 @@ module VagrantPlugins
       # @param [Symbol] name The action name (:up, :halt, :destroy, etc.)
       # @return [Vagrant::Action::Builder, nil] Action middleware builder or nil
       # @api public
+      # rubocop:disable Metrics/MethodLength
       def action(name)
         case name
         when :up
@@ -44,9 +45,14 @@ module VagrantPlugins
           Vagrant::Action::Builder.new.tap do |b|
             b.use Action::Halt
           end
-          # Return nil for unsupported actions (future stories: :destroy, etc.)
+        when :destroy
+          Vagrant::Action::Builder.new.tap do |b|
+            b.use Action::Destroy
+          end
+          # Return nil for unsupported actions (future stories, etc.)
         end
       end
+      # rubocop:enable Metrics/MethodLength
 
       # Provide SSH connection information for the machine.
       #
@@ -202,6 +208,22 @@ module VagrantPlugins
         raise
       end
 
+      # Path to the machine ID file.
+      #
+      # @return [Pathname] Path to the ID file
+      # @api public
+      def id_file_path
+        @machine.data_dir.join('id')
+      end
+
+      # Path to the metadata JSON file.
+      #
+      # @return [Pathname] Path to the metadata file
+      # @api public
+      def metadata_file_path
+        @machine.data_dir.join('metadata.json')
+      end
+
       private
 
       # Get the state cache instance.
@@ -279,22 +301,6 @@ module VagrantPlugins
           @logger.error("Failed to query machine state: #{error.message}")
           not_created_state('Error querying machine state')
         end
-      end
-
-      # Path to the machine ID file.
-      #
-      # @return [Pathname] Path to the ID file
-      # @api private
-      def id_file_path
-        @machine.data_dir.join('id')
-      end
-
-      # Path to the metadata JSON file.
-      #
-      # @return [Pathname] Path to the metadata file
-      # @api private
-      def metadata_file_path
-        @machine.data_dir.join('metadata.json')
       end
 
       # Ensure the data directory exists.
