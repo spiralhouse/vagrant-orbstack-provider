@@ -48,12 +48,18 @@ module VagrantPlugins
         #
         # @param env [Hash] The environment hash
         # @return [Object] Result from next middleware
-        # @raise [ArgumentError] If machine ID is nil or empty
+        # @raise [ArgumentError] If machine ID is empty string (nil is handled gracefully)
         # @api public
         # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
         def call(env)
           machine = env[:machine]
           ui = env[:ui]
+
+          # Handle already-destroyed machines gracefully (idempotency)
+          if machine.id.nil?
+            ui.info('Machine is already destroyed or was never created.')
+            return @app.call(env)
+          end
 
           # Validate machine ID exists
           machine_id = validate_machine_id!(machine, 'destroy')

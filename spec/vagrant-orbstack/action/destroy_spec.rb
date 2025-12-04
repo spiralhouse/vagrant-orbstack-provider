@@ -181,16 +181,27 @@ RSpec.describe 'VagrantPlugins::OrbStack::Action::Destroy' do
     # ============================================================================
 
     context 'when handling errors' do
-      it 'raises ArgumentError if machine ID is nil' do
-        # Arrange
+      it 'handles nil machine ID gracefully (already destroyed)' do
+        # Arrange - Machine ID is nil (already destroyed)
         allow(machine).to receive(:id).and_return(nil)
+        allow(ui).to receive(:info)
+        allow(app).to receive(:call)
+        allow(VagrantPlugins::OrbStack::Util::OrbStackCLI).to receive(:delete_machine)
+        allow(FileUtils).to receive(:rm_f)
+        allow(provider).to receive(:invalidate_state_cache)
         action = action_class.new(app, env)
 
-        # Act & Assert
-        expect { action.call(env) }.to raise_error(
-          ArgumentError,
-          /Cannot destroy machine.*nil/i
-        )
+        # Act
+        action.call(env)
+
+        # Assert - Should display friendly message and continue chain
+        expect(ui).to have_received(:info).with(/already destroyed|never created/i)
+        expect(app).to have_received(:call).with(env)
+
+        # Assert - Should NOT attempt cleanup since nothing to clean up
+        expect(VagrantPlugins::OrbStack::Util::OrbStackCLI).not_to have_received(:delete_machine)
+        expect(FileUtils).not_to have_received(:rm_f)
+        expect(provider).not_to have_received(:invalidate_state_cache)
       end
 
       it 'raises ArgumentError if machine ID is empty string' do
