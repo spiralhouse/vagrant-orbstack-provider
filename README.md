@@ -129,6 +129,26 @@ end
 
 With this configuration, your machine will be named `vagrant-my-dev-env-<short-id>`.
 
+### Halt and Resume
+
+Stop a running machine:
+
+```bash
+vagrant halt
+```
+
+Resume a halted machine:
+
+```bash
+vagrant up  # Resumes existing machine
+```
+
+Check machine status:
+
+```bash
+vagrant status
+```
+
 ### Multi-Machine Support
 
 Define multiple machines in your Vagrantfile:
@@ -164,6 +184,9 @@ vagrant status
 
 # SSH into web machine
 vagrant ssh web
+
+# Halt specific machine
+vagrant halt web
 ```
 
 ## Configuration
@@ -344,6 +367,14 @@ The provider supports the following Linux distributions available in OrbStack:
   - MachineNamer utility for unique name generation
   - Create action middleware implementation
 
+- **Machine Lifecycle Management (v0.2.0-dev)**:
+  - Machine halt via `vagrant halt` (SPI-1201)
+  - Machine resume via `vagrant up` on stopped machines (SPI-1201)
+  - Halt and Start action middleware implementations
+  - State cache invalidation for accurate status queries
+  - Idempotent halt/start operations (safe to run multiple times)
+  - User-friendly progress messages with machine IDs
+
 - **OrbStack CLI Integration (partial)**:
   - CLI wrapper with command execution and timeout support
   - Machine listing and info retrieval (SPI-1198)
@@ -359,8 +390,8 @@ The provider supports the following Linux distributions available in OrbStack:
 ### Planned (MVP - v0.2.0+)
 
 - SSH integration for remote access
-- Machine start, stop, destroy operations
-- OrbStack CLI wrapper completion (delete, start, stop commands)
+- Machine destroy operations
+- OrbStack CLI wrapper completion (delete command)
 - Provisioner support (Shell, Ansible, Chef, Puppet)
 - Synced folder configuration
 - Error handling and recovery mechanisms

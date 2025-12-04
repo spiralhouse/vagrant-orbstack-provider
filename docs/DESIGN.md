@@ -380,17 +380,22 @@ graph TD
 - Removes machine metadata
 - Handles idempotency (success if machine already gone)
 
-**Halt**
-- Verifies machine exists
-- Executes `orb stop` command
-- Waits for machine to stop
+**Halt** (✅ Implemented)
+- Validates machine ID exists
+- Executes `orb stop` command via OrbStackCLI.stop_machine
+- Invalidates state cache for accurate subsequent queries
+- Displays user-friendly progress message with machine ID
 - Returns success when halted
+- Idempotent (safe to halt already stopped machine)
 
-**Start**
-- Verifies machine exists but is stopped
-- Executes `orb start` command
-- Waits for SSH availability
+**Start** (✅ Implemented)
+- Validates machine ID exists
+- Executes `orb start` command via OrbStackCLI.start_machine
+- Invalidates state cache for accurate subsequent queries
+- Displays user-friendly progress message with machine ID
 - Returns machine to running state
+- Idempotent (safe to start already running machine)
+- **Note**: The Start action is automatically invoked by the Create action when resuming a stopped machine via `vagrant up`
 
 **SSH Info**
 - Queries OrbStack for machine details
