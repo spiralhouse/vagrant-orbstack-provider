@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative '../util/orbstack_cli'
+require_relative 'machine_validation'
 
 module VagrantPlugins
   module OrbStack
@@ -18,6 +19,8 @@ module VagrantPlugins
       #
       # @api public
       class Halt
+        include MachineValidation
+
         # Initialize the middleware.
         #
         # @param app [Object] The next middleware in the chain
@@ -38,17 +41,12 @@ module VagrantPlugins
         # @raise [CommandExecutionError] If stop command fails
         # @raise [CommandTimeoutError] If stop command times out
         # @api public
-        # rubocop:disable Metrics/MethodLength
         def call(env)
           machine = env[:machine]
           ui = env[:ui]
 
           # Validate machine ID exists
-          machine_id = machine.id
-          if machine_id.nil? || machine_id.empty?
-            raise ArgumentError,
-                  'Cannot halt machine: machine ID is nil or empty'
-          end
+          machine_id = validate_machine_id!(machine, 'halt')
 
           ui.info("Halting machine '#{machine_id}'...")
 
@@ -61,7 +59,6 @@ module VagrantPlugins
           # Continue middleware chain
           @app.call(env)
         end
-        # rubocop:enable Metrics/MethodLength
       end
     end
   end

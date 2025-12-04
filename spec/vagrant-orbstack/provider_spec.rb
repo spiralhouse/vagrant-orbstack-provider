@@ -723,12 +723,12 @@ RSpec.describe 'VagrantPlugins::OrbStack::Provider' do
         expect(action).to be_a(Vagrant::Action::Builder)
       end
 
-      it 'returns nil for :destroy action (not yet implemented)' do
+      it 'returns action builder for :destroy action (now implemented)' do
         # Arrange & Act
         action = provider.action(:destroy)
 
         # Assert
-        expect(action).to be_nil
+        expect(action).to be_a(Vagrant::Action::Builder)
       end
 
       it 'returns nil for :ssh action (not yet implemented)' do
