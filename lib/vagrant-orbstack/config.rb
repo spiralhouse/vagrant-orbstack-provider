@@ -39,13 +39,19 @@ module VagrantPlugins
       #   Custom SSH username for connecting to the machine
       #   @return [String, nil] SSH username (defaults to OrbStack's default if nil)
       #   @api public
+      #
+      # @!attribute [rw] forward_agent
+      #   Enable SSH agent forwarding
+      #   @return [Boolean, nil] Whether to forward SSH agent (defaults to false)
+      #   @api public
       attr_accessor :distro
-      attr_accessor :version, :machine_name, :ssh_username
+      attr_accessor :version, :machine_name, :ssh_username, :forward_agent
 
       # Error message constants for validation
       DISTRO_EMPTY_ERROR = 'distro cannot be empty'
       MACHINE_NAME_FORMAT_ERROR = 'machine_name must contain only alphanumeric characters and hyphens'
       SSH_USERNAME_EMPTY_ERROR = 'ssh_username cannot be empty'
+      FORWARD_AGENT_BOOLEAN_ERROR = 'forward_agent must be a boolean (true or false)'
 
       # Regular expression pattern for valid machine_name format.
       #
@@ -65,6 +71,7 @@ module VagrantPlugins
         @version = VagrantPlugins::OrbStack::UNSET_VALUE
         @machine_name = VagrantPlugins::OrbStack::UNSET_VALUE
         @ssh_username = VagrantPlugins::OrbStack::UNSET_VALUE
+        @forward_agent = VagrantPlugins::OrbStack::UNSET_VALUE
         @logger = Log4r::Logger.new('vagrant_orbstack::config')
       end
 
@@ -79,6 +86,7 @@ module VagrantPlugins
         @version = nil if @version == VagrantPlugins::OrbStack::UNSET_VALUE
         @machine_name = nil if @machine_name == VagrantPlugins::OrbStack::UNSET_VALUE
         @ssh_username = nil if @ssh_username == VagrantPlugins::OrbStack::UNSET_VALUE
+        @forward_agent = false if @forward_agent == VagrantPlugins::OrbStack::UNSET_VALUE
       end
 
       # Validate configuration values.
@@ -91,6 +99,7 @@ module VagrantPlugins
         validate_distro(errors)
         validate_machine_name(errors)
         validate_ssh_username(errors)
+        validate_forward_agent(errors)
         { 'OrbStack Provider' => errors }
       end
 
@@ -135,6 +144,17 @@ module VagrantPlugins
         return unless @ssh_username.to_s.strip.empty?
 
         errors << SSH_USERNAME_EMPTY_ERROR
+      end
+
+      # Validate that forward_agent is a boolean if set.
+      #
+      # @param errors [Array<String>] Error accumulator array
+      # @return [void]
+      def validate_forward_agent(errors)
+        return if @forward_agent.nil?
+        return if [true, false].include?(@forward_agent)
+
+        errors << FORWARD_AGENT_BOOLEAN_ERROR
       end
     end
   end
