@@ -23,3 +23,27 @@ en:
         Error details: %{details}
 
         Please check that OrbStack is properly installed and running.
+
+      ssh_not_ready: |-
+        SSH is not ready on machine '%{machine_name}'.
+
+        The machine exists but SSH service is not yet available. This typically
+        happens when the machine is still booting or the SSH daemon is starting.
+
+        Please wait a few moments and try again. If the problem persists, check
+        that the machine is fully started and SSH is enabled.
+
+      ssh_connection_failed: |-
+        Failed to establish SSH connection to machine '%{machine_name}'.
+
+        Reason: %{reason}
+
+        This error occurs when SSH connection attempts fail after the machine
+        appears ready. Common causes include:
+
+        - Network connectivity issues
+        - SSH authentication problems
+        - Firewall blocking connections
+        - SSH service crashed after initial startup
+
+        Check the machine's SSH configuration and network settings.

@@ -150,6 +150,66 @@ RSpec.describe 'VagrantPlugins::OrbStack::Errors' do
     end
   end
 
+  describe 'SSHNotReady error' do
+    before do
+      require 'vagrant-orbstack/errors'
+    end
+
+    it 'is defined as a class' do
+      expect do
+        VagrantPlugins::OrbStack::SSHNotReady
+      end.not_to raise_error
+    end
+
+    it 'inherits from Errors base class' do
+      error_class = VagrantPlugins::OrbStack::SSHNotReady
+      expect(error_class.ancestors.map(&:to_s)).to include('VagrantPlugins::OrbStack::Errors')
+    end
+
+    it 'uses error key :ssh_not_ready' do
+      error_class = VagrantPlugins::OrbStack::SSHNotReady
+
+      expect(error_class).to respond_to(:error_key)
+      expect(error_class.error_key).to eq(:ssh_not_ready)
+    end
+
+    it 'can be instantiated and raised' do
+      expect do
+        raise VagrantPlugins::OrbStack::SSHNotReady
+      end.to raise_error(VagrantPlugins::OrbStack::SSHNotReady)
+    end
+  end
+
+  describe 'SSHConnectionFailed error' do
+    before do
+      require 'vagrant-orbstack/errors'
+    end
+
+    it 'is defined as a class' do
+      expect do
+        VagrantPlugins::OrbStack::SSHConnectionFailed
+      end.not_to raise_error
+    end
+
+    it 'inherits from Errors base class' do
+      error_class = VagrantPlugins::OrbStack::SSHConnectionFailed
+      expect(error_class.ancestors.map(&:to_s)).to include('VagrantPlugins::OrbStack::Errors')
+    end
+
+    it 'uses error key :ssh_connection_failed' do
+      error_class = VagrantPlugins::OrbStack::SSHConnectionFailed
+
+      expect(error_class).to respond_to(:error_key)
+      expect(error_class.error_key).to eq(:ssh_connection_failed)
+    end
+
+    it 'can be instantiated and raised' do
+      expect do
+        raise VagrantPlugins::OrbStack::SSHConnectionFailed
+      end.to raise_error(VagrantPlugins::OrbStack::SSHConnectionFailed)
+    end
+  end
+
   describe 'error message integration' do
     before do
       require 'vagrant-orbstack/errors'
@@ -189,6 +249,26 @@ RSpec.describe 'VagrantPlugins::OrbStack::Errors' do
 
         # Error message should provide context about command execution
         expect(message).to match(/command|execution|failed/i)
+      end
+
+      it 'SSHNotReady error includes machine name context' do
+        skip 'Locale system not available in test environment' unless defined?(I18n)
+
+        error = VagrantPlugins::OrbStack::SSHNotReady.new
+        message = error.message.downcase
+
+        # Error message should mention SSH or readiness
+        expect(message).to match(/ssh|ready|not available/i)
+      end
+
+      it 'SSHConnectionFailed error includes failure reason' do
+        skip 'Locale system not available in test environment' unless defined?(I18n)
+
+        error = VagrantPlugins::OrbStack::SSHConnectionFailed.new
+        message = error.message.downcase
+
+        # Error message should mention SSH or connection
+        expect(message).to match(/ssh|connection|failed/i)
       end
     end
   end

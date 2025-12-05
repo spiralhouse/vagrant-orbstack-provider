@@ -33,6 +33,16 @@ module VagrantPlugins
       error_key(:machine_name_collision)
     end
 
+    # Error raised when SSH is not ready on a machine.
+    class SSHNotReady < Errors
+      error_key(:ssh_not_ready)
+    end
+
+    # Error raised when SSH connection fails.
+    class SSHConnectionFailed < Errors
+      error_key(:ssh_connection_failed)
+    end
+
     # Reopen Errors class to add nested constants for namespaced access
     # This allows both VagrantPlugins::OrbStack::CommandTimeoutError
     # and VagrantPlugins::OrbStack::Errors::CommandTimeoutError to work
@@ -44,6 +54,8 @@ module VagrantPlugins
       CommandExecutionError = ::VagrantPlugins::OrbStack::CommandExecutionError
       CommandTimeoutError = ::VagrantPlugins::OrbStack::CommandTimeoutError
       MachineNameCollisionError = ::VagrantPlugins::OrbStack::MachineNameCollisionError
+      SSHNotReady = ::VagrantPlugins::OrbStack::SSHNotReady
+      SSHConnectionFailed = ::VagrantPlugins::OrbStack::SSHConnectionFailed
 
       # Alias for CLI errors
       OrbStackCLIError = CommandExecutionError
