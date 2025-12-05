@@ -80,6 +80,13 @@ RSpec.describe 'VagrantPlugins::OrbStack::Config' do
       expect(config.ssh_username).to eq(VagrantPlugins::OrbStack::UNSET_VALUE)
     end
 
+    it 'initializes forward_agent as UNSET_VALUE before finalize' do
+      require 'vagrant-orbstack/config'
+      config = VagrantPlugins::OrbStack::Config.new
+
+      expect(config.forward_agent).to eq(VagrantPlugins::OrbStack::UNSET_VALUE)
+    end
+
     # ============================================================================
     # LOGGER INITIALIZATION TESTS (SPI-1134)
     # ============================================================================
@@ -143,6 +150,11 @@ RSpec.describe 'VagrantPlugins::OrbStack::Config' do
       expect(config).to respond_to(:ssh_username)
       expect(config).to respond_to(:ssh_username=)
     end
+
+    it 'provides forward_agent attribute' do
+      expect(config).to respond_to(:forward_agent)
+      expect(config).to respond_to(:forward_agent=)
+    end
   end
 
   describe 'attribute assignment' do
@@ -194,6 +206,23 @@ RSpec.describe 'VagrantPlugins::OrbStack::Config' do
       config.ssh_username = 'customuser'
       expect(config.ssh_username).to eq('customuser')
     end
+
+    it 'allows setting forward_agent to true' do
+      expect do
+        config.forward_agent = true
+      end.not_to raise_error
+    end
+
+    it 'allows setting forward_agent to false' do
+      expect do
+        config.forward_agent = false
+      end.not_to raise_error
+    end
+
+    it 'preserves custom forward_agent value after assignment' do
+      config.forward_agent = true
+      expect(config.forward_agent).to eq(true)
+    end
   end
 
   describe '#finalize!' do
@@ -222,6 +251,11 @@ RSpec.describe 'VagrantPlugins::OrbStack::Config' do
         config.finalize!
         expect(config.ssh_username).to be_nil
       end
+
+      it 'sets forward_agent to false' do
+        config.finalize!
+        expect(config.forward_agent).to eq(false)
+      end
     end
 
     context 'with custom values set' do
@@ -247,6 +281,18 @@ RSpec.describe 'VagrantPlugins::OrbStack::Config' do
         config.ssh_username = 'devuser'
         config.finalize!
         expect(config.ssh_username).to eq('devuser')
+      end
+
+      it 'preserves custom forward_agent true value' do
+        config.forward_agent = true
+        config.finalize!
+        expect(config.forward_agent).to eq(true)
+      end
+
+      it 'preserves custom forward_agent false value' do
+        config.forward_agent = false
+        config.finalize!
+        expect(config.forward_agent).to eq(false)
       end
     end
 
@@ -518,6 +564,59 @@ RSpec.describe 'VagrantPlugins::OrbStack::Config' do
         result = config.validate(machine)
 
         expect(result['OrbStack Provider']).to be_empty
+      end
+
+      it 'accepts forward_agent true' do
+        config.forward_agent = true
+        config.finalize!
+        result = config.validate(machine)
+
+        expect(result['OrbStack Provider']).to be_empty
+      end
+
+      it 'accepts forward_agent false' do
+        config.forward_agent = false
+        config.finalize!
+        result = config.validate(machine)
+
+        expect(result['OrbStack Provider']).to be_empty
+      end
+
+      it 'accepts forward_agent nil' do
+        config.forward_agent = nil
+        config.finalize!
+        result = config.validate(machine)
+
+        expect(result['OrbStack Provider']).to be_empty
+      end
+    end
+
+    context 'with invalid forward_agent' do
+      it 'returns error when forward_agent is string "true"' do
+        config.forward_agent = 'true'
+        config.finalize!
+        result = config.validate(machine)
+
+        expect(result['OrbStack Provider']).not_to be_empty
+        expect(result['OrbStack Provider'].first).to match(/forward_agent.*boolean/i)
+      end
+
+      it 'returns error when forward_agent is string "false"' do
+        config.forward_agent = 'false'
+        config.finalize!
+        result = config.validate(machine)
+
+        expect(result['OrbStack Provider']).not_to be_empty
+        expect(result['OrbStack Provider'].first).to match(/forward_agent.*boolean/i)
+      end
+
+      it 'returns error when forward_agent is integer' do
+        config.forward_agent = 1
+        config.finalize!
+        result = config.validate(machine)
+
+        expect(result['OrbStack Provider']).not_to be_empty
+        expect(result['OrbStack Provider'].first).to match(/forward_agent.*boolean/i)
       end
     end
   end
