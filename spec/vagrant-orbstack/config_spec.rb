@@ -73,6 +73,13 @@ RSpec.describe 'VagrantPlugins::OrbStack::Config' do
       expect(config.machine_name).to eq(VagrantPlugins::OrbStack::UNSET_VALUE)
     end
 
+    it 'initializes ssh_username as UNSET_VALUE before finalize' do
+      require 'vagrant-orbstack/config'
+      config = VagrantPlugins::OrbStack::Config.new
+
+      expect(config.ssh_username).to eq(VagrantPlugins::OrbStack::UNSET_VALUE)
+    end
+
     # ============================================================================
     # LOGGER INITIALIZATION TESTS (SPI-1134)
     # ============================================================================
@@ -131,6 +138,11 @@ RSpec.describe 'VagrantPlugins::OrbStack::Config' do
       expect(config).to respond_to(:machine_name)
       expect(config).to respond_to(:machine_name=)
     end
+
+    it 'provides ssh_username attribute' do
+      expect(config).to respond_to(:ssh_username)
+      expect(config).to respond_to(:ssh_username=)
+    end
   end
 
   describe 'attribute assignment' do
@@ -171,6 +183,17 @@ RSpec.describe 'VagrantPlugins::OrbStack::Config' do
       config.machine_name = 'test-machine'
       expect(config.machine_name).to eq('test-machine')
     end
+
+    it 'allows setting ssh_username' do
+      expect do
+        config.ssh_username = 'devuser'
+      end.not_to raise_error
+    end
+
+    it 'preserves custom ssh_username value after assignment' do
+      config.ssh_username = 'customuser'
+      expect(config.ssh_username).to eq('customuser')
+    end
   end
 
   describe '#finalize!' do
@@ -194,6 +217,11 @@ RSpec.describe 'VagrantPlugins::OrbStack::Config' do
         config.finalize!
         expect(config.machine_name).to be_nil
       end
+
+      it 'sets ssh_username to nil' do
+        config.finalize!
+        expect(config.ssh_username).to be_nil
+      end
     end
 
     context 'with custom values set' do
@@ -213,6 +241,12 @@ RSpec.describe 'VagrantPlugins::OrbStack::Config' do
         config.machine_name = 'my-dev-machine'
         config.finalize!
         expect(config.machine_name).to eq('my-dev-machine')
+      end
+
+      it 'preserves custom ssh_username value' do
+        config.ssh_username = 'devuser'
+        config.finalize!
+        expect(config.ssh_username).to eq('devuser')
       end
     end
 
@@ -321,6 +355,36 @@ RSpec.describe 'VagrantPlugins::OrbStack::Config' do
 
         expect(result['OrbStack Provider']).to be_empty
       end
+
+      it 'accepts symbol distro and converts to string' do
+        config.distro = :ubuntu
+        config.finalize!
+        result = config.validate(machine)
+        expect(result['OrbStack Provider']).to be_empty
+      end
+
+      it 'accepts valid symbol machine_name and converts to string' do
+        config.machine_name = :'my-machine'
+        config.finalize!
+        result = config.validate(machine)
+        expect(result['OrbStack Provider']).to be_empty
+      end
+
+      it 'accepts integer distro after conversion to string' do
+        config.distro = 123
+        config.finalize!
+        result = config.validate(machine)
+        # Defensive .to_s converts 123 -> "123" which is valid
+        expect(result['OrbStack Provider']).to be_empty
+      end
+
+      it 'accepts integer machine_name after conversion to string' do
+        config.machine_name = 123
+        config.finalize!
+        result = config.validate(machine)
+        # Defensive .to_s converts 123 -> "123" which matches pattern
+        expect(result['OrbStack Provider']).to be_empty
+      end
     end
 
     context 'with invalid distro' do
@@ -418,6 +482,42 @@ RSpec.describe 'VagrantPlugins::OrbStack::Config' do
         expect(result['OrbStack Provider'].length).to eq(2)
         expect(result['OrbStack Provider']).to include(match(/distro/i))
         expect(result['OrbStack Provider']).to include(match(/machine_name/i))
+      end
+    end
+
+    context 'with invalid ssh_username' do
+      it 'returns error when ssh_username is empty string' do
+        config.ssh_username = ''
+        config.finalize!
+        result = config.validate(machine)
+
+        expect(result['OrbStack Provider']).not_to be_empty
+        expect(result['OrbStack Provider'].first).to match(/ssh_username.*empty/i)
+      end
+
+      it 'returns error when ssh_username is whitespace only' do
+        config.ssh_username = '   '
+        config.finalize!
+        result = config.validate(machine)
+
+        expect(result['OrbStack Provider']).not_to be_empty
+        expect(result['OrbStack Provider'].first).to match(/ssh_username.*empty/i)
+      end
+
+      it 'accepts nil ssh_username' do
+        config.ssh_username = nil
+        config.finalize!
+        result = config.validate(machine)
+
+        expect(result['OrbStack Provider']).to be_empty
+      end
+
+      it 'accepts non-empty ssh_username' do
+        config.ssh_username = 'devuser'
+        config.finalize!
+        result = config.validate(machine)
+
+        expect(result['OrbStack Provider']).to be_empty
       end
     end
   end
