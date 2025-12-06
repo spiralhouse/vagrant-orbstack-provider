@@ -68,6 +68,7 @@ module VagrantPlugins
       #   - :forward_agent - Whether to forward SSH agent (from config)
       # @raise [SSHNotReady] When machine is running but IP address is not available
       # @api public
+      # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
       def ssh_info
         # Return nil if machine is not running
         current_state = state
@@ -96,6 +97,7 @@ module VagrantPlugins
           forward_agent: forward_agent
         }
       end
+      # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 
       # Return current machine state.
       #
