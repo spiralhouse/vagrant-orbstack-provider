@@ -58,12 +58,43 @@ module VagrantPlugins
 
       # Provide SSH connection information for the machine.
       #
-      # @return [Hash, nil] SSH connection parameters (currently stubbed)
+      # Returns SSH connection parameters for Vagrant to connect to the machine.
+      # Returns nil if the machine is not running or SSH is not available.
+      #
+      # @return [Hash, nil] SSH connection parameters with keys:
+      #   - :host - IP address of the machine
+      #   - :port - SSH port (always 22)
+      #   - :username - SSH username (from config or OrbStack default)
+      #   - :forward_agent - Whether to forward SSH agent (from config)
+      # @raise [SSHNotReady] When machine is running but IP address is not available
       # @api public
-      # @todo Implement SSH info retrieval (tracked in future stories)
       def ssh_info
-        # Stub for now - will be implemented in future stories
-        nil
+        # Return nil if machine is not running
+        current_state = state
+        return nil if %i[not_created stopped].include?(current_state.id)
+
+        # Fetch machine info from OrbStack
+        machine_info = fetch_machine_info
+        return nil if machine_info.nil?
+
+        # Extract IP address
+        ip_address = machine_info['ip4']
+        raise SSHNotReady.new(machine_name: @machine.name) if ip_address.nil? || ip_address.empty?
+
+        # Determine username
+        username = @machine.provider_config.ssh_username
+        username ||= machine_info.dig('record', 'config', 'default_username')
+
+        # Get forward_agent setting
+        forward_agent = @machine.provider_config.forward_agent
+
+        # Return SSH connection parameters
+        {
+          host: ip_address,
+          port: 22,
+          username: username,
+          forward_agent: forward_agent
+        }
       end
 
       # Return current machine state.
@@ -341,6 +372,20 @@ module VagrantPlugins
         return unless defined?(Vagrant::Action::Builtin::Provision)
 
         builder.use Vagrant::Action::Builtin::Provision
+      end
+
+      # Fetch machine info from OrbStack CLI with error handling.
+      #
+      # Calls the OrbStack CLI to retrieve machine information.
+      # Returns nil if the CLI call fails or raises an error.
+      #
+      # @return [Hash, nil] Machine info hash or nil on error
+      # @api private
+      def fetch_machine_info
+        Util::OrbStackCLI.machine_info(@machine.id)
+      rescue StandardError => e
+        @logger.debug("Failed to fetch machine info: #{e.message}")
+        nil
       end
     end
   end
