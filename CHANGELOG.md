@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **SSH Connectivity** ([SPI-1225](https://linear.app/spiral-house/issue/SPI-1225))
+  - Implemented Provider#ssh_info method for SSH connection parameters
+  - Added OrbStack SSH proxy architecture support (localhost:32222 with ProxyCommand)
+  - Enabled SSH agent forwarding via `forward_agent` configuration attribute
+  - Configured automatic SSH key path resolution (~/.orbstack/ssh/id_ed25519)
+  - `vagrant ssh-config` command now generates correct SSH configuration
+  - Direct SSH access works using Vagrant-generated configuration
+
 - **Machine Creation and Naming** ([SPI-1200](https://linear.app/spiral-house/issue/SPI-1200))
   - `vagrant up --provider=orbstack` creates and starts OrbStack machines
   - Automatic machine naming with format `vagrant-<name>-<short-id>`

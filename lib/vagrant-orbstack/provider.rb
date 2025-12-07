@@ -58,12 +58,34 @@ module VagrantPlugins
 
       # Provide SSH connection information for the machine.
       #
-      # @return [Hash, nil] SSH connection parameters (currently stubbed)
+      # Returns SSH connection parameters for Vagrant to connect to the machine
+      # using OrbStack's SSH proxy architecture.
+      #
+      # CRITICAL: OrbStack uses SSH proxy at localhost:32222, NOT direct SSH to VM IP.
+      #
+      # Returns nil if the machine is not running.
+      #
+      # @return [Hash, nil] SSH connection parameters with keys:
+      #   - :host - Always '127.0.0.1' (OrbStack SSH proxy, NOT VM IP)
+      #   - :port - Always 32222 (OrbStack SSH proxy port, NOT 22)
+      #   - :username - Machine ID for proxy routing
+      #   - :private_key_path - OrbStack's auto-generated ED25519 key
+      #   - :forward_agent - Whether to forward SSH agent (from config)
       # @api public
-      # @todo Implement SSH info retrieval (tracked in future stories)
       def ssh_info
-        # Stub for now - will be implemented in future stories
-        nil
+        # Return nil if machine is not running
+        current_state = state
+        return nil if %i[not_created stopped].include?(current_state.id)
+
+        # Return OrbStack SSH proxy configuration
+        {
+          host: '127.0.0.1',
+          port: 32_222,
+          username: @machine.id,
+          private_key_path: File.expand_path('~/.orbstack/ssh/id_ed25519'),
+          proxy_command: orbstack_proxy_command,
+          forward_agent: @machine.provider_config.forward_agent
+        }
       end
 
       # Return current machine state.
@@ -237,6 +259,20 @@ module VagrantPlugins
       # @api private
       def state_cache
         @state_cache ||= Util::StateCache.new(ttl: 5)
+      end
+
+      # Generate OrbStack SSH ProxyCommand.
+      #
+      # OrbStack routes all SSH connections through the OrbStack Helper app
+      # using a ProxyCommand. This returns the correctly formatted command
+      # that Vagrant's SSH layer will use.
+      #
+      # @return [String] ProxyCommand string for SSH config
+      # @api private
+      def orbstack_proxy_command
+        helper_path = '/Applications/OrbStack.app/Contents/Frameworks/' \
+                      'OrbStack Helper.app/Contents/MacOS/OrbStack Helper'
+        "'#{helper_path}' ssh-proxy-fdpass #{Process.uid}"
       end
 
       # Map OrbStack machine info to Vagrant state tuple.
