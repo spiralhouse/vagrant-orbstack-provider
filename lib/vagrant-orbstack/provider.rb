@@ -58,46 +58,35 @@ module VagrantPlugins
 
       # Provide SSH connection information for the machine.
       #
-      # Returns SSH connection parameters for Vagrant to connect to the machine.
-      # Returns nil if the machine is not running or SSH is not available.
+      # Returns SSH connection parameters for Vagrant to connect to the machine
+      # using OrbStack's SSH proxy architecture.
+      #
+      # CRITICAL: OrbStack uses SSH proxy at localhost:32222, NOT direct SSH to VM IP.
+      #
+      # Returns nil if the machine is not running.
       #
       # @return [Hash, nil] SSH connection parameters with keys:
-      #   - :host - IP address of the machine
-      #   - :port - SSH port (always 22)
-      #   - :username - SSH username (from config or OrbStack default)
+      #   - :host - Always '127.0.0.1' (OrbStack SSH proxy, NOT VM IP)
+      #   - :port - Always 32222 (OrbStack SSH proxy port, NOT 22)
+      #   - :username - Machine ID for proxy routing
+      #   - :private_key_path - OrbStack's auto-generated ED25519 key
       #   - :forward_agent - Whether to forward SSH agent (from config)
-      # @raise [SSHNotReady] When machine is running but IP address is not available
       # @api public
-      # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
       def ssh_info
         # Return nil if machine is not running
         current_state = state
         return nil if %i[not_created stopped].include?(current_state.id)
 
-        # Fetch machine info from OrbStack
-        machine_info = fetch_machine_info
-        return nil if machine_info.nil?
-
-        # Extract IP address
-        ip_address = machine_info['ip4']
-        raise SSHNotReady.new(machine_name: @machine.name) if ip_address.nil? || ip_address.empty?
-
-        # Determine username
-        username = @machine.provider_config.ssh_username
-        username ||= machine_info.dig('record', 'config', 'default_username')
-
-        # Get forward_agent setting
-        forward_agent = @machine.provider_config.forward_agent
-
-        # Return SSH connection parameters
+        # Return OrbStack SSH proxy configuration
         {
-          host: ip_address,
-          port: 22,
-          username: username,
-          forward_agent: forward_agent
+          host: '127.0.0.1',
+          port: 32_222,
+          username: @machine.id,
+          private_key_path: File.expand_path('~/.orbstack/ssh/id_ed25519'),
+          proxy_command: orbstack_proxy_command,
+          forward_agent: @machine.provider_config.forward_agent
         }
       end
-      # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 
       # Return current machine state.
       #
@@ -272,6 +261,20 @@ module VagrantPlugins
         @state_cache ||= Util::StateCache.new(ttl: 5)
       end
 
+      # Generate OrbStack SSH ProxyCommand.
+      #
+      # OrbStack routes all SSH connections through the OrbStack Helper app
+      # using a ProxyCommand. This returns the correctly formatted command
+      # that Vagrant's SSH layer will use.
+      #
+      # @return [String] ProxyCommand string for SSH config
+      # @api private
+      def orbstack_proxy_command
+        helper_path = '/Applications/OrbStack.app/Contents/Frameworks/' \
+                      'OrbStack Helper.app/Contents/MacOS/OrbStack Helper'
+        "'#{helper_path}' ssh-proxy-fdpass #{Process.uid}"
+      end
+
       # Map OrbStack machine info to Vagrant state tuple.
       #
       # Converts OrbStack machine status to Vagrant state representation.
@@ -374,20 +377,6 @@ module VagrantPlugins
         return unless defined?(Vagrant::Action::Builtin::Provision)
 
         builder.use Vagrant::Action::Builtin::Provision
-      end
-
-      # Fetch machine info from OrbStack CLI with error handling.
-      #
-      # Calls the OrbStack CLI to retrieve machine information.
-      # Returns nil if the CLI call fails or raises an error.
-      #
-      # @return [Hash, nil] Machine info hash or nil on error
-      # @api private
-      def fetch_machine_info
-        Util::OrbStackCLI.machine_info(@machine.id)
-      rescue StandardError => e
-        @logger.debug("Failed to fetch machine info: #{e.message}")
-        nil
       end
     end
   end

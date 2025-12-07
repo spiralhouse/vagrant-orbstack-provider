@@ -573,7 +573,7 @@ All OrbStack interactions occur through its command-line interface.
 
 ### SSH Integration
 
-SSH connectivity leverages Vagrant's built-in SSH handling.
+SSH connectivity leverages Vagrant's built-in SSH handling, but with critical OrbStack-specific requirements.
 
 ```mermaid
 sequenceDiagram
@@ -597,16 +597,171 @@ sequenceDiagram
     V->>V: Provide shell or run provisioner
 ```
 
-**SSH Info Hash**:
-- `host` - IP address or hostname
-- `port` - SSH port (typically 22)
-- `username` - Default user for distro
-- `private_key_path` - SSH key location (if used)
+#### Critical Discovery: OrbStack SSH Proxy Architecture
 
-**Authentication**:
-- OrbStack handles SSH key management
-- Provider may leverage SSH agent forwarding
-- Passwordless access via OrbStack's integration
+**IMPORTANT**: OrbStack VMs do NOT support direct SSH to their IP addresses. Instead, OrbStack uses an SSH proxy architecture that requires specific connection parameters.
+
+##### SSH Proxy Configuration
+
+OrbStack auto-generates SSH configuration at `~/.orbstack/ssh/config`:
+
+```ssh-config
+Host orb
+  Hostname 127.0.0.1
+  Port 32222
+  User default
+  IdentityFile ~/.orbstack/ssh/id_ed25519
+  IdentitiesOnly yes
+  UserKnownHostsFile ~/.orbstack/ssh/known_hosts
+  ProxyCommand '/Applications/OrbStack.app/Contents/Frameworks/OrbStack Helper.app/Contents/MacOS/OrbStack Helper' ssh-proxy-fdpass 501
+  ProxyUseFdpass yes
+```
+
+**Key Details**:
+- **Host**: `127.0.0.1` (localhost) - NOT the VM's IP address
+- **Port**: `32222` - NOT port 22
+- **Proxy**: OrbStack Helper app handles SSH connection proxying
+- **Authentication**: ED25519 key at `~/.orbstack/ssh/id_ed25519`
+
+##### SSH Connection Syntax
+
+To connect to OrbStack machines via SSH:
+
+```bash
+# Connect to machine as default user (matches macOS user)
+ssh <machine-id>@orb
+
+# Connect as specific user
+ssh <username>@<machine-id>@orb
+
+# Examples:
+ssh vagrant-default-20ad1f@orb              # Connects as jburbridge (macOS user)
+ssh root@vagrant-default-20ad1f@orb         # Connects as root
+ssh vagrant@vagrant-default-20ad1f@orb      # Connects as vagrant (if user exists)
+```
+
+The `@orb` suffix triggers the proxy configuration defined in `~/.orbstack/ssh/config`.
+
+##### SSH User Mapping
+
+**Critical Issue for Vagrant Integration**: OrbStack machines do NOT have a "vagrant" user by default.
+
+**Default User**:
+- OrbStack creates one user matching the macOS username
+- Has passwordless sudo configured
+- No password set by default
+
+**User Discovery**:
+```bash
+# Get default username from machine config
+orb info <machine-id> --format json | jq -r '.record.config.default_username'
+
+# Example output: "jburbridge"
+```
+
+**Creating Additional Users** (if needed for Vagrant compatibility):
+```bash
+# During machine creation with cloud-init
+orb create --set-password ubuntu machine-name
+
+# After creation
+orb -m <machine-id> adduser vagrant
+orb -m <machine-id> usermod -aG sudo vagrant
+```
+
+##### SSH Info Hash for Vagrant
+
+Based on OrbStack's SSH proxy architecture, `ssh_info()` must return:
+
+```ruby
+{
+  host: '127.0.0.1',                          # Localhost, NOT VM IP
+  port: 32222,                                # OrbStack SSH proxy port
+  username: '<machine-id>',                   # Machine ID for proxy routing
+  private_key_path: '~/.orbstack/ssh/id_ed25519'  # OrbStack SSH key
+}
+```
+
+**INCORRECT Approach** (will fail):
+```ruby
+{
+  host: '192.168.139.24',  # ❌ VM IP - direct SSH not supported
+  port: 22,                # ❌ Wrong port
+  username: 'vagrant'      # ❌ User doesn't exist
+}
+```
+
+##### Authentication Details
+
+**SSH Key Location**: `~/.orbstack/ssh/id_ed25519`
+- Auto-generated ED25519 keypair
+- Private key: `~/.orbstack/ssh/id_ed25519`
+- Public key: `~/.orbstack/ssh/id_ed25519.pub`
+- Authorized keys: `~/.orbstack/ssh/authorized_keys`
+
+**Customization**:
+- Replace or symlink keys in `~/.orbstack/ssh/`
+- Restart OrbStack after key changes
+- Add additional keys to `~/.orbstack/ssh/authorized_keys`
+
+**Security**:
+- Connections restricted to localhost only
+- Password authentication disabled
+- Public key authentication only
+- ProxyCommand handles authentication forwarding
+
+##### Implementation Requirements
+
+For correct Vagrant SSH integration:
+
+1. **Return localhost:32222**: Never use VM IP address
+2. **Use machine ID for username**: Proxy interprets this for routing
+3. **Point to OrbStack SSH key**: `~/.orbstack/ssh/id_ed25519`
+4. **Handle missing vagrant user**: Either create during machine setup or configure Vagrant to use default user
+5. **Support forward_agent**: Pass through from provider config
+
+**Reference Implementation**:
+```ruby
+def ssh_info
+  return nil unless state.id == :running
+
+  {
+    host: '127.0.0.1',
+    port: 32222,
+    username: @machine.id,  # Machine ID for proxy routing
+    private_key_path: File.expand_path('~/.orbstack/ssh/id_ed25519'),
+    forward_agent: @machine.provider_config.forward_agent
+  }
+end
+```
+
+##### Testing SSH Connectivity
+
+Verify SSH works correctly:
+
+```bash
+# Test with machine ID syntax
+ssh <machine-id>@orb whoami
+# Expected: <macOS-username>
+
+# Test with explicit user
+ssh root@<machine-id>@orb whoami
+# Expected: root
+
+# Test with SSH -G to verify config
+ssh -G <machine-id>@orb | grep -E "^(hostname|port|user|identityfile)"
+# Expected:
+# hostname 127.0.0.1
+# port 32222
+# user <machine-id>
+# identityfile ~/.orbstack/ssh/id_ed25519
+```
+
+##### Documentation References
+
+- **OrbStack SSH Docs**: https://docs.orbstack.dev/machines/ssh
+- **SSH Config**: `~/.orbstack/ssh/config`
+- **Key Location**: `~/.orbstack/ssh/id_ed25519`
 
 ## Technical Decisions
 
