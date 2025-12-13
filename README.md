@@ -189,6 +189,94 @@ vagrant ssh web
 vagrant halt web
 ```
 
+### SSH Access
+
+The OrbStack provider supports SSH connectivity through OrbStack's built-in SSH proxy architecture.
+
+#### Basic SSH Usage
+
+Access your machine using standard Vagrant SSH commands:
+
+```bash
+# Interactive SSH session
+vagrant ssh
+
+# With multi-machine setup
+vagrant ssh web
+```
+
+#### Understanding OrbStack's SSH User Model
+
+**Important**: OrbStack machines use your **macOS username** (not "vagrant") for SSH connections.
+
+When you SSH into an OrbStack machine, you'll be logged in as your macOS user (e.g., `jburbridge`), not the traditional `vagrant` user. This is OrbStack's intentional design and is the correct behavior.
+
+**Example**:
+```bash
+vagrant ssh
+# You are now: jburbridge@vagrant-default-a3b2c1
+
+whoami
+# Output: jburbridge (your macOS username)
+```
+
+#### Why This Works
+
+OrbStack uses an SSH proxy architecture:
+
+1. **SSH Proxy**: OrbStack provides an SSH proxy at `localhost:32222`
+2. **Machine ID Routing**: The proxy uses the machine ID for routing to the correct VM
+3. **Automatic Authentication**: OrbStack manages SSH keys automatically at `~/.orbstack/ssh/id_ed25519`
+4. **User Mapping**: The proxy maps connections to your macOS username inside the VM
+
+This design provides:
+- Seamless authentication (no password required)
+- Automatic SSH key management
+- Secure localhost-only connections
+- Consistent username across macOS and Linux environments
+
+#### User Permissions
+
+Your macOS user inside the OrbStack VM has:
+- Passwordless `sudo` access
+- Membership in standard groups (`adm`, `sudo`, `video`, `staff`, `orbstack`)
+- Full administrative capabilities
+
+#### SSH Configuration
+
+You can view the SSH configuration Vagrant generates:
+
+```bash
+vagrant ssh-config
+```
+
+This shows:
+- Host: `127.0.0.1` (localhost)
+- Port: `32222` (OrbStack SSH proxy)
+- User: `<machine-id>` (used for routing by the proxy)
+- IdentityFile: `~/.orbstack/ssh/id_ed25519`
+- ProxyCommand: OrbStack Helper for connection proxying
+
+#### Known Limitations
+
+**Command Execution** (`vagrant ssh -c`): Currently not supported. Use this workaround:
+
+```bash
+# Instead of: vagrant ssh -c "whoami"
+# Use:
+ssh -F <(vagrant ssh-config) default "whoami"
+```
+
+This limitation is tracked in issue [SPI-1240](https://linear.app/spiral-house/issue/SPI-1240).
+
+**Manual SSH**: You can also connect directly using OrbStack's SSH syntax:
+
+```bash
+ssh <machine-name>@orb whoami
+```
+
+For more technical details about OrbStack's SSH architecture, see [`docs/DESIGN.md`](./docs/DESIGN.md#ssh-integration).
+
 ## Configuration
 
 The OrbStack provider supports several configuration options to customize your development environment. All configuration is optional—the provider uses sensible defaults following Vagrant's convention-over-configuration philosophy.
