@@ -29,6 +29,11 @@ RSpec.describe 'VagrantPlugins::OrbStack::Action::Create' do
     before do
       require 'vagrant-orbstack/action/create'
       require 'vagrant-orbstack/provider'
+      require 'vagrant-orbstack/util/ssh_readiness_checker'
+
+      # Stub SSH readiness checker by default (specific tests override this)
+      allow(VagrantPlugins::OrbStack::Util::SSHReadinessChecker)
+        .to receive(:wait_for_ready).and_return(true)
     end
 
     let(:action_class) { VagrantPlugins::OrbStack::Action::Create }
@@ -590,6 +595,213 @@ RSpec.describe 'VagrantPlugins::OrbStack::Action::Create' do
         expect(app).to have_received(:call) do |passed_env|
           expect(passed_env).to eq(env)
         end
+      end
+    end
+
+    # ============================================================================
+    # SSH READINESS INTEGRATION TESTS (SPI-1226)
+    # ============================================================================
+    #
+    # These tests verify that the Create action integrates with SSHReadinessChecker
+    # to wait for SSH availability after machine creation and after starting a
+    # stopped machine.
+    #
+    # Reference: SPI-1226 - System waits for SSH availability after machine boot
+    # ============================================================================
+
+    context 'when waiting for SSH readiness after machine creation' do
+      before do
+        # Mock not_created state
+        not_created_state = Vagrant::MachineState.new(:not_created, 'not created',
+                                                      'Machine does not exist')
+        allow(provider).to receive(:state).and_return(not_created_state)
+
+        # Mock MachineNamer
+        allow(VagrantPlugins::OrbStack::Util::MachineNamer).to receive(:generate)
+          .and_return('vagrant-default-a3b2c1')
+
+        # Mock create_machine
+        allow(VagrantPlugins::OrbStack::Util::OrbStackCLI).to receive(:create_machine)
+          .and_return({
+                        id: 'vagrant-default-a3b2c1',
+                        name: 'vagrant-default-a3b2c1',
+                        status: 'running',
+                        distro: 'ubuntu:noble'
+                      })
+      end
+
+      it 'calls SSHReadinessChecker.wait_for_ready after machine creation' do
+        # Arrange
+        action = action_class.new(app, env)
+
+        # Act
+        action.call(env)
+
+        # Assert
+        expect(VagrantPlugins::OrbStack::Util::SSHReadinessChecker)
+          .to have_received(:wait_for_ready)
+          .with('vagrant-default-a3b2c1', ui: ui)
+      end
+
+      it 'waits for SSH after create_machine succeeds' do
+        # Arrange
+        action = action_class.new(app, env)
+        call_order = []
+
+        # Track call order
+        allow(VagrantPlugins::OrbStack::Util::OrbStackCLI).to receive(:create_machine) do
+          call_order << :create_machine
+          { id: 'vagrant-default-a3b2c1', status: 'running' }
+        end
+
+        allow(VagrantPlugins::OrbStack::Util::SSHReadinessChecker).to receive(:wait_for_ready) do
+          call_order << :wait_for_ready
+          true
+        end
+
+        # Act
+        action.call(env)
+
+        # Assert - wait_for_ready should be called after create_machine
+        expect(call_order).to eq(%i[create_machine wait_for_ready])
+      end
+
+      it 'passes machine name to SSHReadinessChecker' do
+        # Arrange
+        action = action_class.new(app, env)
+
+        # Act
+        action.call(env)
+
+        # Assert
+        expect(VagrantPlugins::OrbStack::Util::SSHReadinessChecker)
+          .to have_received(:wait_for_ready)
+          .with('vagrant-default-a3b2c1', anything)
+      end
+
+      it 'passes UI to SSHReadinessChecker for progress messages' do
+        # Arrange
+        action = action_class.new(app, env)
+
+        # Act
+        action.call(env)
+
+        # Assert
+        expect(VagrantPlugins::OrbStack::Util::SSHReadinessChecker)
+          .to have_received(:wait_for_ready)
+          .with(anything, ui: ui)
+      end
+    end
+
+    context 'when waiting for SSH readiness after starting stopped machine' do
+      before do
+        # Mock stopped state
+        stopped_state = Vagrant::MachineState.new(:stopped, 'stopped', 'Machine is stopped')
+        allow(provider).to receive(:state).and_return(stopped_state)
+
+        # Mock machine.id to exist (stopped machines have IDs)
+        allow(machine).to receive(:id).and_return('vagrant-default-a3b2c1')
+
+        # Mock start_machine
+        allow(VagrantPlugins::OrbStack::Util::OrbStackCLI).to receive(:start_machine)
+          .and_return({ id: 'vagrant-default-a3b2c1', status: 'running' })
+      end
+
+      it 'calls SSHReadinessChecker.wait_for_ready after starting machine' do
+        # Arrange
+        action = action_class.new(app, env)
+
+        # Act
+        action.call(env)
+
+        # Assert
+        expect(VagrantPlugins::OrbStack::Util::SSHReadinessChecker)
+          .to have_received(:wait_for_ready)
+          .with('vagrant-default-a3b2c1', ui: ui)
+      end
+
+      it 'waits for SSH after start_machine succeeds' do
+        # Arrange
+        action = action_class.new(app, env)
+        call_order = []
+
+        # Track call order
+        allow(VagrantPlugins::OrbStack::Util::OrbStackCLI).to receive(:start_machine) do
+          call_order << :start_machine
+          { id: 'vagrant-default-a3b2c1', status: 'running' }
+        end
+
+        allow(VagrantPlugins::OrbStack::Util::SSHReadinessChecker).to receive(:wait_for_ready) do
+          call_order << :wait_for_ready
+          true
+        end
+
+        # Act
+        action.call(env)
+
+        # Assert - wait_for_ready should be called after start_machine
+        expect(call_order).to eq(%i[start_machine wait_for_ready])
+      end
+    end
+
+    context 'when SSH readiness check fails with timeout' do
+      before do
+        # Mock not_created state
+        not_created_state = Vagrant::MachineState.new(:not_created, 'not created',
+                                                      'Machine does not exist')
+        allow(provider).to receive(:state).and_return(not_created_state)
+
+        # Mock successful machine creation
+        allow(VagrantPlugins::OrbStack::Util::MachineNamer).to receive(:generate)
+          .and_return('vagrant-default-a3b2c1')
+        allow(VagrantPlugins::OrbStack::Util::OrbStackCLI).to receive(:create_machine)
+          .and_return({ id: 'vagrant-default-a3b2c1', status: 'running' })
+
+        # Mock SSHReadinessChecker to raise timeout error
+        require 'vagrant-orbstack/util/ssh_readiness_checker'
+        allow(VagrantPlugins::OrbStack::Util::SSHReadinessChecker).to receive(:wait_for_ready)
+          .and_raise(VagrantPlugins::OrbStack::Errors::SSHNotReady,
+                     'SSH did not become ready within 60 seconds')
+      end
+
+      it 'propagates SSHNotReady error from checker' do
+        # Arrange
+        action = action_class.new(app, env)
+
+        # Act & Assert
+        expect { action.call(env) }.to raise_error(
+          VagrantPlugins::OrbStack::Errors::SSHNotReady,
+          /SSH did not become ready/
+        )
+      end
+
+      it 'does not call next middleware when SSH wait fails' do
+        # Arrange
+        action = action_class.new(app, env)
+
+        # Act & Assert
+        expect { action.call(env) }.to raise_error(VagrantPlugins::OrbStack::Errors::SSHNotReady)
+        expect(app).not_to have_received(:call)
+      end
+    end
+
+    context 'when SSH readiness check is not called for already running machine' do
+      before do
+        # Mock running state
+        running_state = Vagrant::MachineState.new(:running, 'running', 'Machine is running')
+        allow(provider).to receive(:state).and_return(running_state)
+      end
+
+      it 'does not call SSHReadinessChecker when machine is already running' do
+        # Arrange
+        action = action_class.new(app, env)
+
+        # Act
+        action.call(env)
+
+        # Assert - should be no-op, no SSH wait needed
+        expect(VagrantPlugins::OrbStack::Util::SSHReadinessChecker)
+          .not_to have_received(:wait_for_ready)
       end
     end
   end
