@@ -3,6 +3,7 @@
 require 'time'
 require_relative '../util/machine_namer'
 require_relative '../util/orbstack_cli'
+require_relative '../util/ssh_readiness_checker'
 
 module VagrantPlugins
   module OrbStack
@@ -90,6 +91,7 @@ module VagrantPlugins
           machine = env[:machine]
           machine.ui.info('Starting stopped machine...')
           Util::OrbStackCLI.start_machine(machine.id)
+          Util::SSHReadinessChecker.wait_for_ready(machine.id, ui: machine.ui)
           machine.provider.invalidate_state_cache
         end
 
@@ -119,6 +121,7 @@ module VagrantPlugins
           machine_name = Util::MachineNamer.generate(machine)
           distro = build_distribution_string(machine.provider_config)
           Util::OrbStackCLI.create_machine(machine_name, distribution: distro)
+          Util::SSHReadinessChecker.wait_for_ready(machine_name, ui: ui)
 
           persist_metadata(env, machine_name, distro)
 

@@ -32,6 +32,11 @@ RSpec.describe 'Machine Destruction Integration' do
       require 'vagrant-orbstack/provider'
       require 'vagrant-orbstack/action/create'
       require 'vagrant-orbstack/action/destroy'
+      require 'vagrant-orbstack/util/ssh_readiness_checker'
+
+      # Stub SSH readiness checker since we mock OrbStackCLI (no real machines)
+      allow(VagrantPlugins::OrbStack::Util::SSHReadinessChecker)
+        .to receive(:wait_for_ready).and_return(true)
     end
 
     let(:ui) do

@@ -31,6 +31,11 @@ RSpec.describe 'Machine Creation Integration' do
       require 'vagrant-orbstack/provider'
       require 'vagrant-orbstack/action/create'
       require 'vagrant-orbstack/util/machine_namer'
+      require 'vagrant-orbstack/util/ssh_readiness_checker'
+
+      # Stub SSH readiness checker since we mock OrbStackCLI (no real machines)
+      allow(VagrantPlugins::OrbStack::Util::SSHReadinessChecker)
+        .to receive(:wait_for_ready).and_return(true)
     end
 
     let(:ui) do
@@ -243,6 +248,11 @@ RSpec.describe 'Machine Creation Integration' do
     before do
       require 'vagrant-orbstack/provider'
       require 'vagrant-orbstack/action/create'
+      require 'vagrant-orbstack/util/ssh_readiness_checker'
+
+      # Stub SSH readiness checker since we mock OrbStackCLI (no real machines)
+      allow(VagrantPlugins::OrbStack::Util::SSHReadinessChecker)
+        .to receive(:wait_for_ready).and_return(true)
     end
 
     let(:ui) do
@@ -381,6 +391,11 @@ RSpec.describe 'Machine Creation Integration' do
       require 'vagrant-orbstack/provider'
       require 'vagrant-orbstack/action/create'
       require 'vagrant-orbstack/util/machine_namer'
+      require 'vagrant-orbstack/util/ssh_readiness_checker'
+
+      # Stub SSH readiness checker since we mock OrbStackCLI (no real machines)
+      allow(VagrantPlugins::OrbStack::Util::SSHReadinessChecker)
+        .to receive(:wait_for_ready).and_return(true)
     end
 
     let(:ui) do
@@ -588,6 +603,11 @@ RSpec.describe 'Machine Creation Integration' do
     before do
       require 'vagrant-orbstack/provider'
       require 'vagrant-orbstack/action/create'
+      require 'vagrant-orbstack/util/ssh_readiness_checker'
+
+      # Stub SSH readiness checker since we mock OrbStackCLI (no real machines)
+      allow(VagrantPlugins::OrbStack::Util::SSHReadinessChecker)
+        .to receive(:wait_for_ready).and_return(true)
     end
 
     let(:ui) do
