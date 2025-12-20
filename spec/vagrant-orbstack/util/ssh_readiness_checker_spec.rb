@@ -51,8 +51,8 @@ RSpec.describe 'VagrantPlugins::OrbStack::Util::SSHReadinessChecker' do
     # ============================================================================
 
     context 'when checking constants' do
-      it 'defines MAX_WAIT_TIME constant as 60 seconds' do
-        expect(checker_class::MAX_WAIT_TIME).to eq(60)
+      it 'defines MAX_WAIT_TIME constant as 120 seconds' do
+        expect(checker_class::MAX_WAIT_TIME).to eq(120)
       end
 
       it 'defines POLL_INTERVAL constant as 2 seconds' do
@@ -189,20 +189,20 @@ RSpec.describe 'VagrantPlugins::OrbStack::Util::SSHReadinessChecker' do
           checker_class.wait_for_ready(machine_name, ui: ui)
         end.to raise_error(
           VagrantPlugins::OrbStack::Errors::SSHNotReady,
-          /60 seconds/
+          /120 seconds/
         )
       end
 
       it 'respects MAX_WAIT_TIME constant' do
-        # Should stop polling after 60 seconds
+        # Should stop polling after 120 seconds
         expect do
           checker_class.wait_for_ready(machine_name, ui: ui)
         end.to raise_error(VagrantPlugins::OrbStack::Errors::SSHNotReady)
 
         # Verify we polled approximately MAX_WAIT_TIME / POLL_INTERVAL times
-        # 60 seconds / 2 seconds = 30 polls max
+        # 120 seconds / 2 seconds = 60 polls max
         expect(VagrantPlugins::OrbStack::Util::OrbStackCLI)
-          .to have_received(:machine_info).at_most(31).times
+          .to have_received(:machine_info).at_most(61).times
       end
     end
 

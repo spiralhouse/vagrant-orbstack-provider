@@ -26,7 +26,7 @@ module VagrantPlugins
       module SSHReadinessChecker
         # Maximum time to wait for SSH to become ready (in seconds)
         # @return [Integer] Timeout in seconds
-        MAX_WAIT_TIME = 60
+        MAX_WAIT_TIME = 120
 
         # Interval between status polls (in seconds)
         # @return [Integer] Poll interval in seconds
