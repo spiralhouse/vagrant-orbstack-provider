@@ -75,8 +75,9 @@ echo ""
 # Check 2: RSpec (Tests)
 #############################################
 print_section "Running RSpec tests..."
+print_warning "Excluding E2E tests (tagged :e2e) - they run in CI"
 
-if bundle exec rspec; then
+if bundle exec rspec --tag ~e2e; then
   print_success "RSpec passed (all tests passing)"
 else
   print_error "RSpec failed (see failures above)"
