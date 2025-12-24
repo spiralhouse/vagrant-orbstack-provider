@@ -39,11 +39,10 @@ RSpec.describe 'Vagrant SSH E2E Tests', :e2e do
   # Create a temporary Vagrantfile for testing
   #
   # @param dir [String] Directory to create Vagrantfile in
-  # @param machine_name [String] Name of the machine (default: 'default')
   # @param distro [String] Distribution to use (default: 'ubuntu')
   # @param version [String] Distribution version (default: 'noble')
   # @return [void]
-  def create_vagrantfile(dir, machine_name: 'default', distro: 'ubuntu', version: 'noble')
+  def create_vagrantfile(dir, distro: 'ubuntu', version: 'noble')
     vagrantfile_content = <<~VAGRANTFILE
       Vagrant.configure("2") do |config|
         config.vm.box = "orbstack"
@@ -64,6 +63,7 @@ RSpec.describe 'Vagrant SSH E2E Tests', :e2e do
   # @param command [String] Vagrant command to execute (e.g., 'up', 'ssh -c "echo hello"')
   # @param timeout [Integer] Command timeout in seconds (default: 180)
   # @return [Hash] Hash with :success, :stdout, :stderr, :exit_code
+  # rubocop:disable Metrics/MethodLength
   def vagrant_exec(dir, command, timeout: 180)
     stdout_str = ''
     stderr_str = ''
@@ -101,6 +101,7 @@ RSpec.describe 'Vagrant SSH E2E Tests', :e2e do
       exit_code: exit_code
     }
   end
+  # rubocop:enable Metrics/MethodLength
 
   # Clean up Vagrant machine
   #
