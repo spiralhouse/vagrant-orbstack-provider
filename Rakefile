@@ -5,10 +5,11 @@ require 'rspec/core/rake_task'
 require 'fileutils'
 require 'io/console'
 
-# Define RSpec task - exclude integration tests to prevent recursion
+# Define RSpec task - exclude integration and e2e tests
+# E2E tests require real Vagrant and OrbStack and are run separately
 RSpec::Core::RakeTask.new(:spec) do |t|
   t.pattern = 'spec/**/*_spec.rb'
-  t.exclude_pattern = 'spec/integration/**/*_spec.rb'
+  t.exclude_pattern = 'spec/{integration,e2e}/**/*_spec.rb'
   t.rspec_opts = '--format documentation'
 end
 
@@ -18,7 +19,13 @@ RSpec::Core::RakeTask.new('spec:integration') do |t|
   t.rspec_opts = '--format documentation'
 end
 
-# All tests (unit + integration)
+# E2E tests (real Vagrant execution - requires Vagrant and OrbStack)
+RSpec::Core::RakeTask.new('spec:e2e') do |t|
+  t.pattern = 'spec/e2e/**/*_spec.rb'
+  t.rspec_opts = '--format documentation'
+end
+
+# All tests (unit + integration + e2e)
 RSpec::Core::RakeTask.new('spec:all') do |t|
   t.pattern = 'spec/**/*_spec.rb'
   t.rspec_opts = '--format documentation'

@@ -357,7 +357,8 @@ bundle exec rake spec      # Runs unit tests (explicit)
 
 # Test variants
 bundle exec rake spec:integration  # Integration tests only
-bundle exec rake spec:all          # All tests (unit + integration)
+bundle exec rake spec:e2e          # E2E tests only (requires OrbStack)
+bundle exec rake spec:all          # All tests (unit + integration + e2e)
 
 # Build and package
 bundle exec rake build     # Build gem to pkg/ directory
@@ -369,9 +370,10 @@ bundle exec rake release   # Build, tag, and push to RubyGems
 ```
 
 **Task Descriptions:**
-- **spec**: Runs unit tests (excludes integration tests to prevent recursion)
+- **spec**: Runs unit tests (excludes integration and e2e tests for fast feedback)
 - **spec:integration**: Runs integration tests for Rakefile tasks
-- **spec:all**: Runs complete test suite (unit + integration)
+- **spec:e2e**: Runs end-to-end tests (requires OrbStack and Vagrant installed)
+- **spec:all**: Runs complete test suite (unit + integration + e2e)
 - **build**: Creates `.gem` file in `pkg/` directory
 - **install**: Builds and installs gem to local gem repository
 - **clean**: Removes `pkg/` directory and build artifacts
