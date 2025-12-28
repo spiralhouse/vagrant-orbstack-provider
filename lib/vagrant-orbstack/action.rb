@@ -14,6 +14,7 @@ module VagrantPlugins
       autoload :Destroy, 'vagrant-orbstack/action/destroy'
       autoload :Halt, 'vagrant-orbstack/action/halt'
       autoload :Reload, 'vagrant-orbstack/action/reload'
+      autoload :SSHRun, 'vagrant-orbstack/action/ssh_run'
       autoload :Start, 'vagrant-orbstack/action/start'
     end
   end
