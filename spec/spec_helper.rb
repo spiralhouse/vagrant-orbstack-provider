@@ -197,6 +197,7 @@ unless defined?(Vagrant)
 end
 
 # Configure RSpec
+# rubocop:disable Metrics/BlockLength
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
   config.example_status_persistence_file_path = '.rspec_status'
@@ -223,5 +224,29 @@ RSpec.configure do |config|
   config.before(:suite) do
     # Suppress Vagrant logging during tests
     Vagrant.logger = Vagrant::Logger.new(nil) if defined?(Vagrant)
+
+    # E2E test cleanup: Clean up stale vagrant machines before test run
+    if ENV['E2E_TESTS'] || ENV['SPEC_E2E']
+      require_relative 'support/orbstack_cleanup'
+      stale_machines = OrbStackCleanup.list_vagrant_machines
+      if stale_machines.any?
+        warn "[E2E Setup] Found #{stale_machines.count} stale vagrant machines"
+        warn '[E2E Setup] Cleaning up before test run...'
+        OrbStackCleanup.cleanup_all_vagrant_machines
+      end
+    end
+  end
+
+  # E2E test cleanup: Final cleanup after entire test suite completes
+  config.after(:suite) do
+    if ENV['E2E_TESTS'] || ENV['SPEC_E2E']
+      require_relative 'support/orbstack_cleanup'
+      remaining = OrbStackCleanup.list_vagrant_machines
+      if remaining.any?
+        warn "[E2E Cleanup] Cleaning up #{remaining.count} remaining vagrant machines..."
+        OrbStackCleanup.cleanup_all_vagrant_machines
+      end
+    end
   end
 end
+# rubocop:enable Metrics/BlockLength
