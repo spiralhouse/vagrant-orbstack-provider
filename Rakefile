@@ -31,6 +31,36 @@ RSpec::Core::RakeTask.new('spec:all') do |t|
   t.rspec_opts = '--format documentation'
 end
 
+# OrbStack cleanup tasks
+namespace :orbstack do
+  desc 'Clean up all vagrant-* machines from OrbStack'
+  task :cleanup do
+    require_relative 'spec/support/orbstack_cleanup'
+    machines = OrbStackCleanup.list_vagrant_machines
+    if machines.empty?
+      puts 'No vagrant machines found'
+    else
+      puts "Found #{machines.count} vagrant machines:"
+      machines.each { |m| puts "  - #{m}" }
+      puts "\nDeleting..."
+      deleted = OrbStackCleanup.cleanup_all_vagrant_machines
+      puts "Deleted #{deleted.count} machines"
+    end
+  end
+
+  desc 'List all vagrant-* machines in OrbStack'
+  task :list do
+    require_relative 'spec/support/orbstack_cleanup'
+    machines = OrbStackCleanup.list_vagrant_machines
+    if machines.empty?
+      puts 'No vagrant machines found'
+    else
+      puts "Found #{machines.count} vagrant machines:"
+      machines.each { |m| puts "  - #{m}" }
+    end
+  end
+end
+
 # Redefine clean to match test expectations (remove entire pkg directory)
 Rake::Task[:clean].clear if Rake::Task.task_defined?(:clean)
 desc 'Remove any temporary products'
