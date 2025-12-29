@@ -86,14 +86,13 @@ module VagrantPlugins
           nil
         end
 
-        # Raise timeout error with formatted message.
+        # Raise timeout error with machine_name parameter for I18n.
         #
         # @param machine_name [String] The name of the machine
-        # @raise [SSHNotReady] Always raises with formatted message
+        # @raise [SSHNotReady] Always raises with machine_name parameter
         # @api private
         def self.raise_timeout_error(machine_name)
-          raise SSHNotReady,
-                "SSH did not become ready on machine '#{machine_name}' within #{MAX_WAIT_TIME} seconds"
+          raise SSHNotReady, machine_name: machine_name
         end
 
         # Check if machine is in running state.

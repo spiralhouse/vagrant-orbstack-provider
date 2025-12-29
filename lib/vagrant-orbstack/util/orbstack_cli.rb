@@ -230,7 +230,7 @@ module VagrantPlugins
           def raise_unless_successful!(action, stderr, success)
             return if success
 
-            raise CommandExecutionError, "Failed to #{action} machine: #{stderr}"
+            raise CommandExecutionError, command: "orb #{action}", details: stderr
           end
 
           # Execute an OrbStack CLI command.
