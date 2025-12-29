@@ -105,7 +105,7 @@ module VagrantPlugins
         # @api private
         def self.machine_running?(machine_name)
           info = OrbStackCLI.machine_info(machine_name)
-          info && info['status'] == 'running'
+          info && info.dig('record', 'state') == 'running'
         end
 
         private_class_method :poll_until_ready, :raise_timeout_error, :machine_running?
