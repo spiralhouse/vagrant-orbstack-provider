@@ -4,7 +4,113 @@ This document describes the automated release process for vagrant-orbstack using
 
 ## Overview
 
-Releases are fully automated using **RubyGems Trusted Publishing** (OIDC-based authentication) via GitHub Actions. No manual authentication or API keys are required.
+Releases are **fully automated** using Release-Please and RubyGems Trusted Publishing. The process is triggered by conventional commits pushed to main, eliminating manual version bumping and changelog updates.
+
+## Automated Release Process (Primary Method)
+
+### How It Works
+
+1. **Commit with conventional format** to main (via PR):
+   ```
+   feat: add synced folders support [SPI-1234]
+   fix: resolve SSH timeout on machine start [SPI-1235]
+   ```
+
+2. **Release-Please analyzes commits**:
+   - Runs automatically on every push to main
+   - Determines version bump based on commit types:
+     - `feat:` → minor bump (0.1.0 → 0.2.0)
+     - `fix:` → patch bump (0.1.0 → 0.1.1)
+     - `BREAKING CHANGE:` → major bump (0.x.0 → 1.0.0)
+   - Categorizes changes for changelog
+
+3. **Release PR automatically created/updated**:
+   - Title: `chore: prepare 0.2.0 release`
+   - Updates: `lib/vagrant-orbstack/version.rb` and `CHANGELOG.md`
+   - Grouped by type: Added (feat), Fixed (fix), Changed (refactor), etc.
+   - Linear issue references preserved
+
+4. **Review and merge release PR**:
+   - Review version bump (correct semver?)
+   - Review changelog (accurate categorization?)
+   - Merge when ready
+
+5. **Automated publishing triggered**:
+   - Merge creates git tag (e.g., v0.2.0)
+   - Tag triggers `.github/workflows/release.yml`
+   - Publishes to RubyGems via Trusted Publishing
+   - Creates GitHub release with changelog
+   - Total time: ~3-5 minutes
+
+### Developer Workflow
+
+**Adding Features** (minor bump):
+```bash
+git checkout -b feat/synced-folders
+# ... implement feature ...
+git commit -m "feat: add synced folders support [SPI-1234]"
+git push origin feat/synced-folders
+# Create PR, get approval, merge to main
+# → Release-Please creates/updates release PR automatically
+```
+
+**Fixing Bugs** (patch bump):
+```bash
+git checkout -b fix/ssh-timeout
+# ... fix bug ...
+git commit -m "fix: resolve SSH timeout on slow machines [SPI-1235]"
+# → Same process: PR → merge → automatic release PR
+```
+
+**Documentation/Chores** (patch bump, hidden in changelog):
+```bash
+git commit -m "docs: update troubleshooting guide"
+git commit -m "chore: update dependencies"
+# → These still create releases but don't appear in user-facing changelog
+```
+
+### Commit Type Reference
+
+| Type | Version Impact | Changelog Section | Example |
+|------|---------------|-------------------|---------|
+| `feat` | MINOR (0.1→0.2) | Added | New feature, capability |
+| `fix` | PATCH (0.1.0→0.1.1) | Fixed | Bug fix, regression fix |
+| `docs` | PATCH | Documentation | README, guides, comments |
+| `refactor` | PATCH | Changed | Code restructuring |
+| `test` | PATCH | (hidden) | Test additions |
+| `chore` | PATCH | (hidden) | Dependencies, tooling |
+
+**Breaking Changes**: Add `BREAKING CHANGE:` in commit footer → MAJOR bump
+
+See [CONTRIBUTING.md](../CONTRIBUTING.md) for detailed commit message guidelines.
+
+### When Release PR Appears
+
+Release-Please creates/updates a release PR when:
+- Releasable commits exist since last release (feat, fix, docs, refactor)
+- No PR exists yet, or existing PR needs updating with new commits
+
+Release-Please does NOT create PR when:
+- Only non-releasable commits (test-only, no user-facing changes)
+- No commits since last release
+
+### Release PR Review Checklist
+
+Before merging the release PR:
+- [ ] Version bump is correct (feat = minor, fix = patch, BREAKING = major)
+- [ ] Changelog accurately reflects changes
+- [ ] All features/fixes have Linear issue references
+- [ ] Categorization matches intent (Added vs Fixed vs Changed)
+- [ ] No unintended changes in version.rb or CHANGELOG.md
+- [ ] CI checks pass (RuboCop, RSpec, build)
+
+### Monitoring Releases
+
+After release PR merges:
+1. **Watch GitHub Actions**: Release workflow should complete in ~3-5 min
+2. **Check RubyGems**: https://rubygems.org/gems/vagrant-orbstack
+3. **Verify GitHub Release**: https://github.com/spiralhouse/vagrant-orbstack-provider/releases
+4. **Test installation**: `vagrant plugin install vagrant-orbstack --version X.Y.Z`
 
 ## Prerequisites
 
@@ -21,7 +127,9 @@ Releases are fully automated using **RubyGems Trusted Publishing** (OIDC-based a
    - Triggers: On version tags (`v*.*.*`)
    - Uses: `rubygems/release-gem@v1` action with OIDC
 
-## Release Workflow
+## Manual Release Process (Fallback/Reference)
+
+**Note**: This manual process is preserved as a fallback if automation fails. The automated process above is now the primary release method.
 
 ### Step 1: Update Version
 
@@ -168,6 +276,46 @@ After workflow completes:
 
 ## Troubleshooting
 
+### Release-Please Not Creating PR
+
+**Cause**: No releasable commits since last release.
+
+**Solution**:
+- Check commits since last tag: `git log v0.1.0..HEAD --oneline`
+- Verify commits use conventional format (`feat:`, `fix:`, etc.)
+- Ensure commits are on main branch
+- Manually trigger: GitHub Actions → Release-Please workflow → Run workflow
+
+### Release PR Has Wrong Version Bump
+
+**Cause**: Commit types don't match intent (e.g., `fix:` used for feature).
+
+**Solution**:
+1. Close the release PR
+2. Rewrite commit messages on main (if recent): `git rebase -i HEAD~3`
+3. Force push: `git push --force-with-lease origin main`
+4. Release-Please will recreate PR with correct version
+
+**Prevention**: Use correct commit types (feat for features, fix for bugs).
+
+### Changelog Missing Expected Changes
+
+**Cause**: Commits hidden by changelog-types configuration.
+
+**Solution**:
+- Types `test`, `chore`, `research` are intentionally hidden from user-facing changelog
+- Use `feat:` or `fix:` for user-visible changes
+- Internal changes (tests, deps) don't need changelog visibility
+
+### "Version mismatch" in Release Workflow
+
+**Cause**: Manual edit to version.rb after Release-Please PR merged.
+
+**Solution**:
+- Never manually edit version.rb after Release-Please creates it
+- Let Release-Please manage version bumping
+- If manual edit needed, update release PR before merging
+
 ### "Trusted publisher verification failed"
 
 **Cause**: Workflow name, repository, or environment doesn't match RubyGems configuration.
@@ -177,9 +325,9 @@ After workflow completes:
 2. Verify workflow file is named `release.yml`
 3. Ensure repository name is correct: `spiralhouse/vagrant-orbstack-provider`
 
-### "Version mismatch"
+### "Version mismatch" (Git tag vs version.rb)
 
-**Cause**: Git tag version doesn't match `version.rb`.
+**Cause**: Git tag version doesn't match `version.rb` (manual release scenario).
 
 **Solution**:
 1. Ensure `version.rb` was updated and committed
@@ -226,9 +374,9 @@ gh release create v0.2.0 \
 
 Potential enhancements to consider:
 
-1. **Automatic version bumping** - Script to update version + changelog
+1. ~~**Automatic version bumping**~~ - ✅ **Implemented via Release-Please (SPI-1294)**
 2. **Pre-release testing** - Deploy to test environment before production
-3. **Changelog generation** - Auto-generate from commit messages
+3. ~~**Changelog generation**~~ - ✅ **Implemented via Release-Please (SPI-1294)**
 4. **Rollback capability** - Automated rollback on critical issues
 5. **Release notifications** - Slack/Discord notifications on publish
 
