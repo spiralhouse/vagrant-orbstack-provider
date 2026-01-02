@@ -9,66 +9,101 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Fixed
+
+## [0.1.0] - 2026-01-01
+
+### Added
+
 - **SSH Connectivity** ([SPI-1225](https://linear.app/spiral-house/issue/SPI-1225))
   - Implemented Provider#ssh_info method for SSH connection parameters
   - Added OrbStack SSH proxy architecture support (localhost:32222 with ProxyCommand)
   - Enabled SSH agent forwarding via `forward_agent` configuration attribute
   - Configured automatic SSH key path resolution (~/.orbstack/ssh/id_ed25519)
-  - `vagrant ssh-config` command now generates correct SSH configuration
+  - `vagrant ssh-config` command generates correct SSH configuration
   - Direct SSH access works using Vagrant-generated configuration
+  - SSH readiness waiting after machine boot ([SPI-1226](https://linear.app/spiral-house/issue/SPI-1226))
+  - SSH verification tests ([SPI-1227](https://linear.app/spiral-house/issue/SPI-1227))
+  - SSH run action for `vagrant ssh -c` ([SPI-1240](https://linear.app/spiral-house/issue/SPI-1240))
+  - SSH error handling ([SPI-1224](https://linear.app/spiral-house/issue/SPI-1224))
+  - `ssh_username` configuration attribute ([SPI-1222](https://linear.app/spiral-house/issue/SPI-1222))
 
-- **Machine Creation and Naming** ([SPI-1200](https://linear.app/spiral-house/issue/SPI-1200))
-  - `vagrant up --provider=orbstack` creates and starts OrbStack machines
+- **Machine Lifecycle Management**
+  - `vagrant up --provider=orbstack` creates and starts OrbStack machines ([SPI-1200](https://linear.app/spiral-house/issue/SPI-1200))
+  - `vagrant halt` stops running machines ([SPI-1201](https://linear.app/spiral-house/issue/SPI-1201))
+  - `vagrant destroy` removes machines and cleans up metadata ([SPI-1203](https://linear.app/spiral-house/issue/SPI-1203))
+  - `vagrant reload` restarts machines with fresh configuration ([SPI-1202](https://linear.app/spiral-house/issue/SPI-1202))
   - Automatic machine naming with format `vagrant-<name>-<short-id>`
-  - Idempotent operations (safe to run `vagrant up` multiple times)
+  - Idempotent operations (safe to run commands multiple times)
   - Multi-machine support with unique name collision avoidance
-  - State-aware creation (checks if machine exists before creating)
-  - MachineNamer utility class for generating unique names
-  - Create action middleware for handling machine creation workflow
-  - MachineNameCollisionError for handling naming conflicts
+  - State-aware operations (checks machine state before acting)
 
 - **Machine State Query** ([SPI-1199](https://linear.app/spiral-house/issue/SPI-1199))
-  - Provider#state method returns accurate Vagrant::MachineState by querying OrbStack CLI
+  - Provider#state method returns accurate Vagrant::MachineState
   - StateCache utility class with 5-second TTL for performance optimization
   - State mapping: OrbStack states (running, stopped) → Vagrant states (:running, :stopped, :not_created)
-  - Cache invalidation support (per-key via `invalidate(key)` and global via `invalidate_all`)
-  - Graceful error handling for CLI failures and timeouts
+  - `vagrant status` command works correctly
+  - Cache invalidation support for fresh state queries
 
-- **OrbStack CLI Integration** ([SPI-1198](https://linear.app/spiral-house/issue/SPI-1198), SPI-1200)
-  - `list_machines` method for retrieving all OrbStack machines
-  - `machine_info(name)` method for querying specific machine details
-  - `create_machine(name, distribution:)` method for creating new machines
-  - `start_machine(name)` method for starting stopped machines
+- **OrbStack CLI Integration** ([SPI-1198](https://linear.app/spiral-house/issue/SPI-1198))
+  - `list_machines` - retrieve all OrbStack machines
+  - `machine_info(name)` - query specific machine details
+  - `create_machine(name, distribution:)` - create new machines
+  - `start_machine(name)` - start stopped machines
+  - `stop_machine(name)` - stop running machines
+  - `delete_machine(name)` - remove machines
   - Command execution with timeout support (default 30 seconds)
-  - Error handling (CommandTimeoutError, CommandExecutionError, MachineNameCollisionError)
+  - Error handling (CommandTimeoutError, CommandExecutionError)
+  - OrbStack detection and availability checking
 
-- **Test Coverage**:
-  - 80 new tests for machine creation functionality
-  - 363 total tests passing (99.5% pass rate)
-  - 100% coverage of implemented creation and naming features
+- **Configuration**
+  - `distro` - Linux distribution selection (default: "ubuntu")
+  - `version` - Distribution version specification
+  - `machine_name` - Custom machine naming
+  - `ssh_username` - SSH username configuration
+  - `forward_agent` - SSH agent forwarding control
+
+- **Error Handling**
+  - I18n error messages and localization
+  - OrbStackNotInstalled error
+  - OrbStackNotRunning error
+  - CommandExecutionError for CLI failures
+  - CommandTimeoutError for CLI timeouts
+  - SSHNotReady error for SSH connectivity issues
+  - SSHConnectionFailed error
+
+- **Development Infrastructure**
+  - Comprehensive test suite (617 passing tests)
+  - RuboCop configuration and compliance
+  - Git pre-push hooks for quality gates
+  - CI/CD pipeline with GitHub Actions
+  - YARD documentation
+  - Test coverage reporting
+
+### Fixed
+
+- I18n parameter passing in error classes ([SPI-1272](https://linear.app/spiral-house/issue/SPI-1272))
+- Plugin loading errors ([SPI-1220](https://linear.app/spiral-house/issue/SPI-1220))
+- E2E test exclusion from default rake task ([SPI-1278](https://linear.app/spiral-house/issue/SPI-1278))
 
 ### Changed
 
-- **Provider Interface**:
-  - `state()` method fully implemented with machine state querying
-  - `action(name)` method now returns proper Vagrant::Action::Builder instance
-  - `vagrant status` command now works and returns accurate machine state
+- Gemspec metadata updated for RubyGems publication ([SPI-1289](https://linear.app/spiral-house/issue/SPI-1289))
+  - Real author, email, homepage (Spiral House organization)
+  - Complete metadata hash with 6 required URIs
+  - `allowed_push_host` restriction to rubygems.org
 
-- **OrbStackCLI API Changes**:
-  - `create_machine(name, distribution:)` - name parameter first, distribution as keyword
-  - `create_machine` and `start_machine` now return `{ id:, status: }` hash instead of boolean
-  - More consistent with Vagrant conventions and provides machine information
-  - All CLI methods now include comprehensive logging
+### Known Limitations
 
-### Planned
+- Box support not yet implemented (must use distribution-based creation)
+- Synced folders not yet supported
+- Networking configuration limited to OrbStack defaults
+- Provisioners tested but not all scenarios covered
+- macOS-only (OrbStack platform requirement)
 
-- SSH integration for remote access
-- Machine start, stop, destroy operations
-- Provisioner support (Shell, Ansible, Chef, Puppet)
-- Synced folder configuration
-- Additional Linux distribution support
-
-## [0.1.0] - 2025-11-17
+## [0.0.1] - 2025-11-17
 
 ### Added
 - Plugin registration with Vagrant v2 API (SPI-1130)
@@ -115,24 +150,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Plugin can be installed but does not yet manage machines
 - Focus of this release: establishing solid development foundation
 
-## Release History
-
-### Version Numbering
-- **0.x.x**: Pre-release / Alpha versions
-- **1.0.0**: First stable release with MVP features
-- **1.x.x**: Post-MVP enhancements and features
-
-### Upcoming Milestones
-- **v0.2.0**: Machine lifecycle implementation (SPI-1132)
-- **v0.3.0**: SSH connectivity and state management
-- **v0.4.0**: Provisioner support
-- **v1.0.0**: Production-ready MVP with full feature set
-
----
-
-## Contributing
-
-See [DEVELOPMENT.md](./DEVELOPMENT.md) for development guidelines and [CLAUDE.md](./CLAUDE.md) for our agent-based workflow.
-
-[Unreleased]: https://github.com/johnburbridge/vagrant-orbstack-provider/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/johnburbridge/vagrant-orbstack-provider/releases/tag/v0.1.0
+[Unreleased]: https://github.com/spiralhouse/vagrant-orbstack-provider/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/spiralhouse/vagrant-orbstack-provider/releases/tag/v0.1.0
+[0.0.1]: https://github.com/spiralhouse/vagrant-orbstack-provider/releases/tag/v0.0.1
