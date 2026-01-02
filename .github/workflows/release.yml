@@ -1,0 +1,144 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Trigger on version tags (e.g., v0.2.0, v1.0.0)
+
+permissions:
+  contents: write  # Required for creating GitHub releases
+  id-token: write  # Required for RubyGems Trusted Publishing (OIDC)
+
+jobs:
+  release:
+    name: Build and Publish Gem
+    runs-on: ubuntu-latest
+    # Optional: require manual approval via GitHub environment
+    # Uncomment if you configured "release" environment in RubyGems trusted publisher
+    # environment: release
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0  # Fetch all history for changelog generation
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Verify version matches gemspec
+        run: |
+          GEMSPEC_VERSION=$(ruby -r ./lib/vagrant-orbstack/version.rb -e 'puts VagrantPlugins::OrbStack::VERSION')
+          if [ "${{ steps.version.outputs.version }}" != "$GEMSPEC_VERSION" ]; then
+            echo "Error: Tag version (${{ steps.version.outputs.version }}) doesn't match gemspec version ($GEMSPEC_VERSION)"
+            exit 1
+          fi
+          echo "✓ Version matches: $GEMSPEC_VERSION"
+
+      - name: Run quality checks
+        run: |
+          echo "→ Running RuboCop..."
+          bundle exec rubocop
+          echo "→ Running RSpec tests..."
+          bundle exec rspec --exclude-pattern "spec/e2e/**/*_spec.rb"
+
+      - name: Build gem
+        run: |
+          gem build vagrant-orbstack.gemspec
+          mkdir -p pkg
+          mv vagrant-orbstack-*.gem pkg/
+
+      - name: Verify gem contents
+        run: |
+          echo "→ Inspecting gem contents..."
+          gem spec pkg/vagrant-orbstack-*.gem --yaml | grep -A 50 "files:"
+
+          echo "→ Verifying no test files included..."
+          if gem spec pkg/vagrant-orbstack-*.gem files | grep -q "spec/"; then
+            echo "Error: Test files found in gem"
+            exit 1
+          fi
+          echo "✓ Gem contents verified"
+
+      - name: Publish to RubyGems via Trusted Publishing
+        uses: rubygems/release-gem@v1
+        # This action automatically:
+        # - Gets OIDC token from GitHub
+        # - Authenticates with RubyGems using trusted publisher config
+        # - Pushes the gem (no API key needed!)
+
+      - name: Extract CHANGELOG for this version
+        id: changelog
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+
+          # Extract the section for this version from CHANGELOG.md
+          CHANGELOG=$(sed -n "/## \[${VERSION}\]/,/## \[/p" CHANGELOG.md | sed '$d')
+
+          # If no changelog found, use a default message
+          if [ -z "$CHANGELOG" ]; then
+            CHANGELOG="Release ${VERSION}"
+          fi
+
+          # Save to file for use in GitHub release
+          echo "$CHANGELOG" > /tmp/release-notes.md
+
+          # Also output for debugging
+          echo "Changelog for v${VERSION}:"
+          cat /tmp/release-notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ${{ steps.version.outputs.tag }}
+          body_path: /tmp/release-notes.md
+          draft: false
+          prerelease: false
+          files: |
+            pkg/vagrant-orbstack-*.gem
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify publication
+        run: |
+          echo "→ Waiting for gem to be available on RubyGems..."
+          sleep 10
+
+          VERSION=${{ steps.version.outputs.version }}
+          PUBLISHED_VERSION=$(gem search -r ^vagrant-orbstack$ --exact | grep -o "[0-9]\+\.[0-9]\+\.[0-9]\+" || echo "not found")
+
+          if [ "$PUBLISHED_VERSION" = "$VERSION" ]; then
+            echo "✓ Gem successfully published: vagrant-orbstack ${VERSION}"
+            echo "✓ RubyGems URL: https://rubygems.org/gems/vagrant-orbstack"
+          else
+            echo "Warning: Gem may still be propagating (found: $PUBLISHED_VERSION, expected: $VERSION)"
+          fi
+
+      - name: Post-release summary
+        run: |
+          cat << EOF
+
+          🎉 Release Complete!
+
+          Version: ${{ steps.version.outputs.version }}
+          Tag: ${{ steps.version.outputs.tag }}
+
+          Published to:
+          - RubyGems: https://rubygems.org/gems/vagrant-orbstack/versions/${{ steps.version.outputs.version }}
+          - GitHub: ${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ steps.version.outputs.tag }}
+
+          Install:
+            vagrant plugin install vagrant-orbstack
+
+          EOF
