@@ -2,8 +2,8 @@
 
 A Vagrant provider plugin that enables [OrbStack](https://orbstack.dev/) as a backend for managing Linux development environments on macOS.
 
-![Development Status](https://img.shields.io/badge/status-alpha-orange)
-![Version](https://img.shields.io/badge/version-0.1.0-blue)
+[![Gem Version](https://badge.fury.io/rb/vagrant-orbstack.svg)](https://badge.fury.io/rb/vagrant-orbstack)
+[![Build Status](https://github.com/spiralhouse/vagrant-orbstack-provider/workflows/CI/badge.svg)](https://github.com/spiralhouse/vagrant-orbstack-provider/actions)
 [![codecov](https://codecov.io/gh/spiralhouse/vagrant-orbstack-provider/graph/badge.svg?token=VIHOdRkRJ9)](https://codecov.io/gh/spiralhouse/vagrant-orbstack-provider)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
@@ -18,6 +18,21 @@ OrbStack is a high-performance alternative to traditional VM solutions on macOS,
 This provider allows you to leverage OrbStack's performance while maintaining the familiar Vagrant workflow.
 
 > **Development Status**: This provider is under active development. Most features are not yet implemented. See [Project Status](#project-status) for details.
+
+## Table of Contents
+
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Usage](#usage)
+- [Configuration](#configuration)
+- [Known Limitations](#known-limitations)
+- [Project Status](#project-status)
+- [Development](#development)
+- [Documentation](#documentation)
+- [Contributing](#contributing)
+- [Support](#support)
+- [License](#license)
 
 ## Requirements
 
@@ -36,21 +51,10 @@ OrbStack must be installed and running on your system:
 
 ## Installation
 
-Since the plugin is not yet published to RubyGems, you'll need to build and install it locally:
+Install the plugin directly from RubyGems:
 
 ```bash
-# Clone the repository
-git clone https://github.com/johnburbridge/vagrant-orbstack-provider.git
-cd vagrant-orbstack-provider
-
-# Install dependencies
-bundle install
-
-# Build the gem
-gem build vagrant-orbstack.gemspec
-
-# Install the plugin locally
-vagrant plugin install pkg/vagrant-orbstack-0.1.0.gem
+vagrant plugin install vagrant-orbstack
 ```
 
 Verify the installation:
@@ -426,6 +430,19 @@ The provider supports the following Linux distributions available in OrbStack:
 
 **Note**: Distribution availability depends on your OrbStack installation. Refer to the [OrbStack documentation](https://docs.orbstack.dev/machines/) for the most current list of supported distributions and versions.
 
+## Known Limitations
+
+The following features are not yet supported in v0.1.0:
+
+- **Box Support**: Box format is not implemented. You must use distribution-based creation with `distro` and `version` configuration.
+- **Synced Folders**: Shared folders between host and guest are not yet supported.
+- **Networking**: Configuration is limited to OrbStack defaults. Custom network settings are not available.
+- **Command Execution**: The `vagrant ssh -c "command"` syntax is not yet supported. Use the workaround documented in the [SSH section](#ssh-access).
+- **Provisioners**: While basic provisioner support exists, not all scenarios have been tested.
+- **Platform**: macOS-only due to OrbStack platform requirement.
+
+These features are planned for future releases. See [CHANGELOG.md](./CHANGELOG.md) for version history and the [PRD](./docs/PRD.md) for the complete roadmap.
+
 ## Project Status
 
 ### Implemented
@@ -493,7 +510,7 @@ For complete roadmap, see [`docs/PRD.md`](./docs/PRD.md).
 
 ```bash
 # Clone and setup
-git clone https://github.com/johnburbridge/vagrant-orbstack-provider.git
+git clone https://github.com/spiralhouse/vagrant-orbstack-provider.git
 cd vagrant-orbstack-provider
 bundle install
 ```
@@ -526,6 +543,8 @@ yard doc
 
 ### Local Testing
 
+To test local changes before contributing:
+
 ```bash
 # Build and install gem locally
 gem build vagrant-orbstack.gemspec
@@ -542,8 +561,11 @@ Vagrant.configure("2") do |config|
 end
 EOF
 
-# Test (note: most features are stubs currently)
+# Test your changes
 vagrant up --provider=orbstack
+vagrant ssh
+vagrant halt
+vagrant destroy
 ```
 
 ## Documentation
@@ -578,8 +600,8 @@ This project follows Test-Driven Development (TDD). See [`CLAUDE.md`](./CLAUDE.m
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/johnburbridge/vagrant-orbstack-provider/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/johnburbridge/vagrant-orbstack-provider/discussions)
+- **Issues**: [GitHub Issues](https://github.com/spiralhouse/vagrant-orbstack-provider/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/spiralhouse/vagrant-orbstack-provider/discussions)
 
 ## License
 
