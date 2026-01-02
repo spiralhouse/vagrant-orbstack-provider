@@ -125,7 +125,7 @@ module VagrantPlugins
           #   info = OrbStackCLI.machine_info('my-dev-vm')
           #   puts info['distro'] if info
           def machine_info(name)
-            stdout, _stderr, success = execute_command("orb info #{name}", timeout: QUERY_TIMEOUT)
+            stdout, _stderr, success = execute_command("orb info --format json #{name}", timeout: QUERY_TIMEOUT)
             return nil unless success
 
             JSON.parse(stdout)
@@ -230,7 +230,7 @@ module VagrantPlugins
           def raise_unless_successful!(action, stderr, success)
             return if success
 
-            raise CommandExecutionError, "Failed to #{action} machine: #{stderr}"
+            raise CommandExecutionError, command: "orb #{action}", details: stderr
           end
 
           # Execute an OrbStack CLI command.
