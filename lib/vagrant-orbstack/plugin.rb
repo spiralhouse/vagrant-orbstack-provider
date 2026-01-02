@@ -3,6 +3,7 @@
 require 'vagrant-orbstack/version'
 
 module VagrantPlugins
+  # OrbStack provider plugin namespace
   module OrbStack
     # OrbStack provider plugin for Vagrant.
     #
@@ -30,6 +31,15 @@ module VagrantPlugins
         require_relative 'config'
         Config
       end
+
+      # Setup I18n locale files for error messages
+      def self.setup!
+        locale_path = Pathname.new(File.expand_path('../locales', __dir__))
+        I18n.load_path << locale_path.join('en.yml') if locale_path.exist?
+      end
     end
+
+    # Initialize I18n on plugin load
+    Plugin.setup!
   end
 end

@@ -472,7 +472,7 @@ RSpec.describe 'VagrantPlugins::OrbStack::Util::OrbStackCLI' do
           memory: 4096
         }.to_json
         allow(cli_class).to receive(:execute_command)
-          .with('orb info vagrant-test-1', timeout: 30)
+          .with('orb info --format json vagrant-test-1', timeout: 30)
           .and_return([machine_json, '', true])
       end
 
@@ -487,7 +487,7 @@ RSpec.describe 'VagrantPlugins::OrbStack::Util::OrbStackCLI' do
     context 'when machine does not exist' do
       before do
         allow(cli_class).to receive(:execute_command)
-          .with('orb info nonexistent', timeout: 30)
+          .with('orb info --format json nonexistent', timeout: 30)
           .and_return(['', 'error: machine not found', false])
       end
 
@@ -499,7 +499,7 @@ RSpec.describe 'VagrantPlugins::OrbStack::Util::OrbStackCLI' do
     context 'when orb info returns invalid JSON' do
       before do
         allow(cli_class).to receive(:execute_command)
-          .with('orb info invalid-json', timeout: 30)
+          .with('orb info --format json invalid-json', timeout: 30)
           .and_return(['not valid json', '', true])
       end
 
@@ -511,7 +511,7 @@ RSpec.describe 'VagrantPlugins::OrbStack::Util::OrbStackCLI' do
     context 'when orb info times out' do
       before do
         allow(cli_class).to receive(:execute_command)
-          .with('orb info timeout-test', timeout: 30)
+          .with('orb info --format json timeout-test', timeout: 30)
           .and_raise(VagrantPlugins::OrbStack::CommandTimeoutError)
       end
 
