@@ -201,6 +201,18 @@ When writing tests:
 
 For comprehensive testing guidelines, see [docs/TDD.md](./docs/TDD.md).
 
+### OrbStack-Specific Testing Considerations
+
+OrbStack differs from VirtualBox/VMware in ways that affect testing:
+
+**User Mapping**: The SSH username (e.g., `vagrant-default-xxx`) is for routing only. The actual user inside the VM is mapped to your macOS username. Tests expecting `whoami` to return "vagrant" should expect `ENV['USER']` instead.
+
+**Storage Persistence**: OrbStack uses container-style storage:
+- Home directory (`~/`) persists across `vagrant halt` and `vagrant up`
+- `/tmp/` is ephemeral and does NOT persist
+
+Write tests accordingly - use `~/` for data that should survive halt/up cycles.
+
 ## Pull Request Process
 
 ### Before Submitting
