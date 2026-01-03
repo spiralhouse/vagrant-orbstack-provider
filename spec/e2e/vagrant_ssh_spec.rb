@@ -160,7 +160,7 @@ RSpec.describe 'Vagrant SSH E2E Tests', :e2e do
       # The SSH username (vagrant-default-xxx) is for routing only, but inside
       # the VM, the actual user is mapped to ENV['USER'] (the macOS username)
       expect(result[:success]).to be true
-      expect(result[:stdout].strip).to eq(ENV['USER'])
+      expect(result[:stdout].strip).to eq(ENV.fetch('USER'))
     end
 
     it 'executes multiple commands in sequence' do
@@ -241,7 +241,7 @@ RSpec.describe 'Vagrant SSH E2E Tests', :e2e do
       up_result = vagrant_exec(test_dir, 'up --provider=orbstack', timeout: 300)
       expect(up_result[:success]).to be true
 
-      # Note: Use home directory (~) instead of /tmp because OrbStack doesn't
+      # NOTE: Use home directory (~) instead of /tmp because OrbStack doesn't
       # persist /tmp across halt/up cycles (expected behavior for containers)
       write_result = vagrant_exec(test_dir, 'ssh -c "echo persistent-data > ~/persistent.txt"', timeout: 30)
       expect(write_result[:success]).to be true
@@ -297,7 +297,7 @@ RSpec.describe 'Vagrant SSH E2E Tests', :e2e do
 
     before do
       # Create Vagrantfile with shell provisioner
-      # Note: Use home directory (~) instead of /tmp because OrbStack doesn't
+      # NOTE: Use home directory (~) instead of /tmp because OrbStack doesn't
       # persist /tmp across halt/up cycles (expected behavior for containers)
       vagrantfile_content = <<~VAGRANTFILE
         Vagrant.configure("2") do |config|
