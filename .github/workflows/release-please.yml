@@ -1,0 +1,57 @@
+name: Release Please
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # Manual trigger for testing
+
+permissions:
+  contents: write      # Update files and create tags
+  pull-requests: write # Create release PRs
+
+jobs:
+  release-please:
+    name: Create Release PR
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Run Release Please
+        uses: googleapis/release-please-action@v4
+        with:
+          release-type: ruby
+          package-name: vagrant-orbstack
+
+          # Version bumping (pre-1.0 behavior)
+          bump-minor-pre-major: true
+          bump-patch-for-minor-pre-major: false
+
+          # Changelog section mapping
+          changelog-types: |
+            [
+              {"type":"feat","section":"Added","hidden":false},
+              {"type":"fix","section":"Fixed","hidden":false},
+              {"type":"docs","section":"Documentation","hidden":false},
+              {"type":"refactor","section":"Changed","hidden":false},
+              {"type":"chore","section":"Maintenance","hidden":true},
+              {"type":"test","section":"Tests","hidden":true},
+              {"type":"research","section":"Research","hidden":true}
+            ]
+
+          # Tag configuration (matches existing release.yml)
+          include-component-in-tag: false
+          include-v-in-tag: true
+
+          # PR customization
+          pull-request-title-pattern: "chore: prepare ${version} release"
+          pull-request-header: |
+            :robot: This automated PR prepares the next release.
+
+            Merging will:
+            1. Update `lib/vagrant-orbstack/version.rb` to ${version}
+            2. Update `CHANGELOG.md` with categorized changes
+            3. Create git tag `v${version}`
+            4. Trigger automated publishing (RubyGems + GitHub)
+
+          # Bootstrap from v0.1.0 release
+          bootstrap-sha: eb4aef0
