@@ -71,26 +71,24 @@ RSpec.describe 'Vagrant SSH E2E Tests', :e2e do
 
     # Use Bundler.with_unbundled_env to prevent gem conflicts
     Bundler.with_unbundled_env do
-      Dir.chdir(dir) do
-        require 'open3'
-        require 'timeout'
+      require 'open3'
+      require 'timeout'
 
-        begin
-          Timeout.timeout(timeout) do
-            Open3.popen3("vagrant #{command}") do |_stdin, stdout, stderr, wait_thr|
-              stdout_str = stdout.read
-              stderr_str = stderr.read
-              exit_code = wait_thr.value.exitstatus
-            end
+      begin
+        Timeout.timeout(timeout) do
+          Open3.popen3("vagrant #{command}", chdir: dir) do |_stdin, stdout, stderr, wait_thr|
+            stdout_str = stdout.read
+            stderr_str = stderr.read
+            exit_code = wait_thr.value.exitstatus
           end
-        rescue Timeout::Error
-          return {
-            success: false,
-            stdout: stdout_str,
-            stderr: "Command timed out after #{timeout} seconds",
-            exit_code: 124 # Standard timeout exit code
-          }
         end
+      rescue Timeout::Error
+        return {
+          success: false,
+          stdout: stdout_str,
+          stderr: "Command timed out after #{timeout} seconds",
+          exit_code: 124 # Standard timeout exit code
+        }
       end
     end
 
