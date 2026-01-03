@@ -5,10 +5,26 @@ These are ABSOLUTE RULES that can NEVER be violated:
 ## Git Workflow Constraints
 - ❌ NEVER commit directly to `main` branch
 - ❌ NEVER merge code without a pull request
-- ❌ NEVER bypass git hooks without documented reason
+- ❌ NEVER bypass git hooks with `--no-verify` except in emergencies (see below)
 - ✅ ALWAYS create a feature branch first (feat/, fix/, docs/, test/, refactor/, chore/)
 - ✅ ALWAYS require code-reviewer approval before merge
 - ✅ ALWAYS ensure tests pass and baseline-check succeeds before PR
+
+### Git Hook Bypass Policy (`--no-verify`)
+
+**Default**: Git hooks (pre-push) are there to catch issues BEFORE they reach CI. ALWAYS let them run.
+
+**Emergency exceptions** (document in commit/PR why bypass was needed):
+- Critical production hotfix that CI will verify anyway
+- Hook infrastructure is broken and blocking all work
+- False positive in hook that needs separate fix
+
+**NEVER bypass for**:
+- "I'm in a hurry" - hooks save time by catching issues locally
+- "Output is too long" - fix the hook output, don't bypass (see #44)
+- "I'll fix it later" - you won't, and it wastes team time when CI catches it
+
+**If you bypass**: CI will catch issues anyway, requiring follow-up PRs. You're not saving time, you're creating more work.
 
 ## Engineering Manager Role Constraints
 - ❌ NEVER write code yourself - you are a coordinator, not an implementer
