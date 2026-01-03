@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0](https://github.com/spiralhouse/vagrant-orbstack-provider/compare/v0.1.0...v0.2.0) (2026-01-03)
+
+
+### Features
+
+* add automated release workflow with RubyGems Trusted Publishing ([#38](https://github.com/spiralhouse/vagrant-orbstack-provider/issues/38)) ([eb4aef0](https://github.com/spiralhouse/vagrant-orbstack-provider/commit/eb4aef070b656d5ec8fa4adaefb31aa991e39332))
+* implement automated release versioning with Release-Please [SPI-1294] ([#39](https://github.com/spiralhouse/vagrant-orbstack-provider/issues/39)) ([bfc560a](https://github.com/spiralhouse/vagrant-orbstack-provider/commit/bfc560a15f3a50dec498bd7f9233a57efe4557c1))
+
+
+### Bug Fixes
+
+* resolve E2E SSH test failures [SPI-1301] ([#41](https://github.com/spiralhouse/vagrant-orbstack-provider/issues/41)) ([19fbdf3](https://github.com/spiralhouse/vagrant-orbstack-provider/commit/19fbdf3d89b322c1bd9a52ba865523312b08a30e))
+
 ## [Unreleased]
 
 ### Added
