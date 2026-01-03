@@ -136,7 +136,7 @@ RSpec.describe 'Vagrant SSH E2E Tests', :e2e do
     it 'executes simple echo command via vagrant ssh -c' do
       # Arrange - create and start machine
       up_result = vagrant_exec(test_dir, 'up --provider=orbstack', timeout: 300)
-      expect(up_result[:success]).to be true, "vagrant up failed: #{up_result[:stderr]}"
+      expect(up_result[:success]).to be(true), "vagrant up failed: #{up_result[:stderr]}"
 
       # Act - execute SSH command
       result = vagrant_exec(test_dir, 'ssh -c "echo hello"', timeout: 30)
@@ -149,7 +149,7 @@ RSpec.describe 'Vagrant SSH E2E Tests', :e2e do
     it 'returns correct output from whoami command' do
       # Arrange - create and start machine
       up_result = vagrant_exec(test_dir, 'up --provider=orbstack', timeout: 300)
-      expect(up_result[:success]).to be true, "vagrant up failed: #{up_result[:stderr]}"
+      expect(up_result[:success]).to be(true), "vagrant up failed: #{up_result[:stderr]}"
 
       # Get machine ID from vagrant status
       status_result = vagrant_exec(test_dir, 'status', timeout: 30)
@@ -168,7 +168,7 @@ RSpec.describe 'Vagrant SSH E2E Tests', :e2e do
     it 'executes multiple commands in sequence' do
       # Arrange - create and start machine
       up_result = vagrant_exec(test_dir, 'up --provider=orbstack', timeout: 300)
-      expect(up_result[:success]).to be true, "vagrant up failed: #{up_result[:stderr]}"
+      expect(up_result[:success]).to be(true), "vagrant up failed: #{up_result[:stderr]}"
 
       # Act - execute multiple SSH commands
       result1 = vagrant_exec(test_dir, 'ssh -c "echo first"', timeout: 30)
@@ -189,7 +189,7 @@ RSpec.describe 'Vagrant SSH E2E Tests', :e2e do
     it 'can create and read files via SSH' do
       # Arrange - create and start machine
       up_result = vagrant_exec(test_dir, 'up --provider=orbstack', timeout: 300)
-      expect(up_result[:success]).to be true, "vagrant up failed: #{up_result[:stderr]}"
+      expect(up_result[:success]).to be(true), "vagrant up failed: #{up_result[:stderr]}"
 
       # Act - create file and read it back
       write_result = vagrant_exec(test_dir, 'ssh -c "echo test-content > /tmp/test-file.txt"', timeout: 30)
@@ -218,7 +218,7 @@ RSpec.describe 'Vagrant SSH E2E Tests', :e2e do
     it 'SSH works after vagrant halt and vagrant up' do
       # Arrange - create and start machine
       up_result = vagrant_exec(test_dir, 'up --provider=orbstack', timeout: 300)
-      expect(up_result[:success]).to be true, "vagrant up failed: #{up_result[:stderr]}"
+      expect(up_result[:success]).to be(true), "vagrant up failed: #{up_result[:stderr]}"
 
       # Verify initial SSH works
       ssh_result1 = vagrant_exec(test_dir, 'ssh -c "echo before-halt"', timeout: 30)
@@ -227,10 +227,10 @@ RSpec.describe 'Vagrant SSH E2E Tests', :e2e do
 
       # Act - halt and restart machine
       halt_result = vagrant_exec(test_dir, 'halt', timeout: 60)
-      expect(halt_result[:success]).to be true, "vagrant halt failed: #{halt_result[:stderr]}"
+      expect(halt_result[:success]).to be(true), "vagrant halt failed: #{halt_result[:stderr]}"
 
       up_result2 = vagrant_exec(test_dir, 'up --provider=orbstack', timeout: 300)
-      expect(up_result2[:success]).to be true, "vagrant up after halt failed: #{up_result2[:stderr]}"
+      expect(up_result2[:success]).to be(true), "vagrant up after halt failed: #{up_result2[:stderr]}"
 
       # Assert - SSH should work after restart
       ssh_result2 = vagrant_exec(test_dir, 'ssh -c "echo after-up"', timeout: 30)
@@ -323,7 +323,7 @@ RSpec.describe 'Vagrant SSH E2E Tests', :e2e do
       up_result = vagrant_exec(test_dir, 'up --provider=orbstack', timeout: 300)
 
       # Assert - vagrant up should succeed
-      expect(up_result[:success]).to be true, "vagrant up failed: #{up_result[:stderr]}"
+      expect(up_result[:success]).to be(true), "vagrant up failed: #{up_result[:stderr]}"
 
       # Verify provisioner executed
       read_result = vagrant_exec(test_dir, 'ssh -c "cat /tmp/provisioner-result.txt"', timeout: 30)
