@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1](https://github.com/spiralhouse/vagrant-orbstack-provider/compare/v0.2.0...v0.2.1) (2026-01-03)
+
+
+### Bug Fixes
+
+* resolve RuboCop linting issues in E2E SSH tests ([#43](https://github.com/spiralhouse/vagrant-orbstack-provider/issues/43)) ([be1667a](https://github.com/spiralhouse/vagrant-orbstack-provider/commit/be1667a899570e9b2c48153a9f765379d94fb1fa))
+
 ## [0.2.0](https://github.com/spiralhouse/vagrant-orbstack-provider/compare/v0.1.0...v0.2.0) (2026-01-03)
 
 
