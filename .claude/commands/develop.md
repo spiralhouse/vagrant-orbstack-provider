@@ -304,6 +304,12 @@ Epic: [SPI-xxx] [Epic Title]
 
 ## TDD Workflow
 
+⚠️ **CRITICAL**: This feature MUST be developed following RED-GREEN-REFACTOR cycle.
+
+**No implementation without tests.** Tests must be written FIRST.
+
+Violations of TDD workflow will be rejected in code review.
+
 This feature will be developed following RED-GREEN-REFACTOR cycle:
 
 ### RED Phase (test-engineer)

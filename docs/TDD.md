@@ -41,6 +41,30 @@ graph LR
     style C fill:#4dabf7
 ```
 
+### Agent Delegation Flow
+
+The TDD cycle involves coordination between specialized agents:
+
+```mermaid
+graph TD
+    EM[Engineering Manager<br/>Coordinates TDD workflow] --> TE1[test-engineer<br/>RED Phase]
+    TE1 -->|Failing tests written<br/>+ phase summary| RD1[ruby-developer<br/>GREEN Phase]
+    RD1 -->|Tests passing<br/>+ phase summary| SA[software-architect<br/>REFACTOR Analysis]
+    SA -->|Refactoring strategy<br/>+ phase summary| RD2[ruby-developer<br/>REFACTOR Execute]
+    RD2 -->|Refactoring complete| TE2[test-engineer<br/>REFACTOR Verify]
+    TE2 -->|All tests pass| CR[code-reviewer<br/>Final Review]
+    CR -->|Approved| MERGE[Merge to main]
+
+    style EM fill:#9775fa,color:#fff
+    style TE1 fill:#ffd43b,color:#000
+    style TE2 fill:#ffd43b,color:#000
+    style RD1 fill:#51cf66,color:#000
+    style RD2 fill:#51cf66,color:#000
+    style SA fill:#4dabf7,color:#fff
+    style CR fill:#ff6b6b,color:#fff
+    style MERGE fill:#2f9e44,color:#fff
+```
+
 ### The Three Phases
 
 | Phase | Goal | Owner | Think Level |
@@ -658,16 +682,20 @@ end
 
 Our testing strategy follows the testing pyramid with the following distribution:
 
-```
-       /\
-      /  \     10% End-to-End Tests
-     /____\    (Full workflow validation)
-    /      \
-   /        \  20% Integration Tests
-  /__________\ (Component interactions)
- /            \
-/______________\ 70% Unit Tests
-                 (Fast, isolated, mocked)
+```mermaid
+graph TD
+    subgraph pyramid[" "]
+        E2E["E2E Tests<br/>10% of tests<br/>10-60 seconds per test"]
+        INT["Integration Tests<br/>20% of tests<br/>1-5 seconds per test"]
+        UNIT["Unit Tests<br/>70% of tests<br/>< 1 second per test"]
+    end
+
+    UNIT --> INT
+    INT --> E2E
+
+    style E2E fill:#ff6b6b,color:#fff
+    style INT fill:#ffd43b,color:#000
+    style UNIT fill:#51cf66,color:#000
 ```
 
 ### 70% Unit Tests (Base)
@@ -1156,6 +1184,117 @@ ANALYSIS: Validation is clear and simple. No refactoring needed.
 When more validations are added, consider validation object pattern.
 ```
 
+### Scenario 4: Design Flaw Discovery During TDD
+
+**Requirement:** Sometimes during RED or GREEN phase, you realize the current design won't work
+
+**Context:**
+
+You're in the middle of a TDD cycle and discover that:
+- The test reveals a fundamental design flaw
+- The approach won't scale to handle edge cases
+- There's a conflict with existing architecture
+- The implementation is becoming unreasonably complex
+
+**Example:**
+
+During GREEN phase for implementing CLI timeout handling, ruby-developer realizes the timeout mechanism conflicts with the state caching strategy—timeouts need immediate feedback, but the cache assumes state is stable for at least 30 seconds.
+
+**Decision Point: Stop and Revisit Design**
+
+When you discover a design flaw during TDD:
+
+**DON'T:**
+- Push through with a hacky workaround
+- Add complexity to "make it work"
+- Skip writing tests for the problematic area
+- Defer the issue to "fix later"
+
+**DO:**
+1. **Acknowledge the Issue**
+   - Stop the current TDD cycle
+   - Document what you discovered
+   - Explain why the current approach won't work
+
+2. **Document in Phase Summary**
+   - Write to `/tmp/{issue-id}-design-flaw.md`
+   - Describe the conflict or limitation
+   - Explain impact on the feature
+   - Note which tests revealed the issue
+
+3. **Revisit Design**
+   - Consult DESIGN.md for architectural constraints
+   - Consider alternative approaches
+   - Discuss with software-architect for guidance
+   - Update design if needed
+
+4. **Delete or Modify Tests**
+   - If tests are based on flawed design, update them
+   - Don't keep tests for a design you're not implementing
+   - Restart RED phase with corrected tests
+
+5. **Restart TDD Cycle**
+   - Begin fresh RED-GREEN-REFACTOR with revised design
+   - Tests should reflect the new approach
+   - Clean up any implementation from abandoned approach
+
+**Resolution:**
+
+```markdown
+# Design Flaw Discovery: CLI Timeout vs State Cache
+
+## Issue Discovered
+During GREEN phase for SPI-1155 (CLI timeout handling), discovered that
+immediate timeout feedback conflicts with 30-second state cache TTL.
+
+## Why Current Design Won't Work
+- Timeout needs instant response (1-2 seconds)
+- State cache assumes machine state is stable for 30 seconds
+- User running `vagrant status` during a timeout would get stale "running"
+  state from cache instead of timeout error
+- This violates the principle of least surprise
+
+## Impact
+- Current tests assume cache and timeout coexist
+- GREEN phase implementation is becoming convoluted with cache bypass logic
+- Risk of confusing user experience
+
+## Revised Approach
+After consulting DESIGN.md and software-architect:
+1. Change cache strategy to per-operation rather than global
+2. Status queries bypass cache when timeout is configured
+3. Other operations (up, halt) still benefit from cache
+
+## Actions Taken
+1. Deleted tests in `spec/unit/provider_spec.rb` lines 45-67 (timeout with cache)
+2. Revised tests to reflect per-operation cache strategy
+3. Updated `/tmp/SPI-1155-red-phase-summary.md` with new test expectations
+4. Restarting RED phase with corrected design
+
+## Rationale
+Better to discover design flaws during TDD than after shipping to users.
+The cycle gave us fast feedback that cache + timeout was problematic.
+Restarting now saves future technical debt.
+```
+
+**Key Insight:**
+
+TDD's value isn't just in catching bugs—it's in discovering design flaws **early** when they're cheap to fix. If writing tests feels awkward or implementation is getting convoluted, trust that signal. Stop, reassess, and restart the cycle with better design.
+
+**When to Restart vs Push Through:**
+
+**Restart the cycle when:**
+- Core design assumption is wrong
+- Tests are revealing architecture conflicts
+- Implementation complexity is escalating rapidly
+- You're adding workarounds to satisfy tests
+
+**Push through when:**
+- Minor naming or structure issue (can refactor)
+- Edge case you hadn't considered (add test, handle it)
+- Implementation is straightforward but tedious
+- Tests are clear and passing
+
 ---
 
 ## Agent Delegation Pattern in TDD
@@ -1357,6 +1496,189 @@ Session handoffs track TDD status:
 - Hard to debug failures
 
 **✓ Small cycles (one behavior at a time)**
+
+---
+
+## Common TDD Mistakes (Vagrant Plugin Context)
+
+These mistakes are specific to Vagrant plugin development and easy to make when first learning TDD:
+
+### Mistake 1: Testing Vagrant's Internals
+
+**Wrong:**
+```ruby
+# Testing Vagrant's behavior instead of our provider
+RSpec.describe VagrantPlugins::OrbStack::Provider do
+  it "creates correct MachineState object" do
+    state = provider.state
+
+    # Testing Vagrant::MachineState internals
+    expect(state).to be_a(Vagrant::MachineState)
+    expect(state.instance_variable_get(:@id)).to eq(:running)
+    expect(state.instance_variable_get(:@short_description)).to eq("running")
+  end
+end
+```
+
+**Why it's wrong:**
+- Testing Vagrant framework behavior, not our code
+- Brittle (coupled to Vagrant's implementation)
+- Doesn't test what our provider does
+
+**Right:**
+```ruby
+# Testing our provider's behavior
+RSpec.describe VagrantPlugins::OrbStack::Provider do
+  it "returns running state when machine is running" do
+    allow(cli_wrapper).to receive(:status).and_return("running")
+
+    state = provider.state
+
+    # Test the contract our provider fulfills
+    expect(state.id).to eq(:running)
+    expect(state.short_description).to eq("running")
+  end
+end
+```
+
+**Why it's right:**
+- Tests our code's behavior (parsing CLI output → returning state)
+- Tests the public interface/contract
+- Focuses on what users/Vagrant care about
+
+---
+
+### Mistake 2: Integration Tests Without Mocks
+
+**Wrong:**
+```ruby
+# Integration test calling real OrbStack CLI
+RSpec.describe "Machine Creation", type: :integration do
+  it "creates machine via OrbStack" do
+    provider = create_provider
+
+    # This actually calls `orb create`
+    provider.action(:up)
+
+    # Assertions on real machine state
+    expect(provider.state.id).to eq(:running)
+  end
+end
+```
+
+**Why it's wrong:**
+- Requires OrbStack installed and running
+- Slow (actual VM creation)
+- Flaky (network, system state)
+- Can't test error conditions easily
+- Pollutes system with test VMs
+
+**Right:**
+```ruby
+# Integration test with mocked CLI calls
+RSpec.describe "Machine Creation", type: :integration do
+  before do
+    # Mock OrbStack CLI responses
+    allow(Vagrant::Util::Subprocess).to receive(:execute)
+      .with("orb", "create", anything)
+      .and_return(double(exit_code: 0, stdout: "machine-123\n", stderr: ""))
+
+    allow(Vagrant::Util::Subprocess).to receive(:execute)
+      .with("orb", "status", anything)
+      .and_return(double(exit_code: 0, stdout: "running\n", stderr: ""))
+  end
+
+  it "creates machine via provider action stack" do
+    provider = create_provider
+
+    # Tests action middleware chain, not real OrbStack
+    provider.action(:up)
+
+    expect(provider.state.id).to eq(:running)
+    expect(provider.machine.id).to eq("machine-123")
+  end
+end
+```
+
+**Why it's right:**
+- Fast (no real VMs created)
+- Reliable (deterministic mocks)
+- Tests integration of our components (action chain, provider, config)
+- Can test error scenarios by mocking failures
+- Doesn't require OrbStack installation
+
+---
+
+### Mistake 3: Skipping RED Verification
+
+**Wrong:**
+```ruby
+# Write test, immediately implement without verifying failure
+RSpec.describe Provider do
+  it "halts running machine" do
+    provider.halt
+    expect(cli_wrapper).to have_received(:halt)
+  end
+end
+
+# Immediately implement halt method
+def halt
+  cli_wrapper.halt(machine_id)
+end
+```
+
+**Why it's wrong:**
+- Never verified test actually fails
+- Test might pass for wrong reasons (missing setup, wrong assertions)
+- No guarantee test is actually testing behavior
+
+**Right (4-step approach):**
+
+**Step 1: Write test**
+```ruby
+RSpec.describe Provider do
+  it "halts running machine" do
+    provider.halt
+    expect(cli_wrapper).to have_received(:halt).with(machine_id)
+  end
+end
+```
+
+**Step 2: Run test, see it fail**
+```bash
+$ bundle exec rspec spec/unit/provider_spec.rb
+
+Failures:
+  1) Provider halts running machine
+     Failure/Error: provider.halt
+     NoMethodError: undefined method `halt' for #<Provider>
+```
+
+**Step 3: Verify failure message is clear**
+- ✓ Clear error (method doesn't exist)
+- ✓ Points to what to implement
+- ✓ Test setup is correct
+
+**Step 4: Implement minimal code**
+```ruby
+def halt
+  cli_wrapper.halt(machine_id)
+end
+```
+
+**Run test again, see it pass**
+```bash
+$ bundle exec rspec spec/unit/provider_spec.rb
+.
+
+1 example, 0 failures
+```
+
+**Why it's right:**
+- Confirms test actually tests the behavior
+- Verifies test setup is correct
+- Failure message guides implementation
+- True RED-GREEN cycle
 
 ---
 

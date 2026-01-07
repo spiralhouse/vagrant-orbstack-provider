@@ -49,6 +49,7 @@ You and code-reviewer have distinct, complementary responsibilities:
 |----------------|-------------------|---------------|
 | **Focus** | How should we structure this? | Is this code ready to merge? |
 | **When** | REFACTOR phase, design reviews | Final approval before merge |
+| **TDD Phase** | REFACTOR analysis | Post-REFACTOR final review |
 | **Pattern detection** | ✓ Core responsibility | Review only |
 | **Refactoring strategy** | ✓ Core responsibility | - |
 | **Architectural design** | ✓ Core responsibility | Evaluate alignment |
