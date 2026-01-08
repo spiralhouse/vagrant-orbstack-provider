@@ -361,21 +361,25 @@ older commit. Comparison may include expected differences from other work.
 
 baseline-check plays a critical role in TDD workflow:
 
-**During GREEN Phase**:
-- Verify tests exist for new implementation
-- Confirm tests are passing
-- Measure test coverage increase
-- Flag if implementation has no corresponding tests
+**After GREEN Phase (before REFACTOR)**:
+- Verify tests exist for new implementation (test count must increase)
+- Confirm all tests are passing (0 failures required)
+- Measure test coverage increase compared to pre-GREEN baseline
+- Flag if implementation added code without corresponding tests
+- Confirm implementation met minimum requirements (tests green)
+- Establish pre-REFACTOR baseline for comparison
 
-**During REFACTOR Phase**:
-- Confirm all tests still pass after refactoring
-- Verify no test coverage regression
-- Compare before/after refactor metrics
+**After REFACTOR Phase**:
+- Confirm all tests STILL pass after refactoring (no regressions)
+- Verify test count unchanged (refactoring doesn't need new tests)
+- Compare RuboCop metrics (offenses should decrease or stay stable)
+- Verify no test coverage regression from refactoring changes
 
 **Quality Gate**:
 - No implementation accepted without tests
-- Test count should increase with new features
-- Test pass rate should remain 100%
+- Test count should increase with new features (GREEN phase)
+- Test pass rate must remain 100% (always)
+- REFACTOR cannot introduce test failures or reduce coverage
 
 ## Best Practices
 
