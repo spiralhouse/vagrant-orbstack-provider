@@ -480,6 +480,13 @@ These features are planned for future releases. See [CHANGELOG.md](./CHANGELOG.m
   - Idempotent halt/start operations (safe to run multiple times)
   - User-friendly progress messages with machine IDs
 
+- **SSH Connectivity (v0.2.0-dev)**:
+  - SSH access via `vagrant ssh` (SPI-1225)
+  - Provider#ssh_info implementation with OrbStack proxy support
+  - Automatic SSH key management (~/.orbstack/ssh/id_ed25519)
+  - macOS username mapping (OrbStack design)
+  - Known limitation: `vagrant ssh -c` not yet supported (SPI-1240)
+
 - **OrbStack CLI Integration (partial)**:
   - CLI wrapper with command execution and timeout support
   - Machine listing and info retrieval (SPI-1198)
@@ -494,7 +501,6 @@ These features are planned for future releases. See [CHANGELOG.md](./CHANGELOG.m
 
 ### Planned (MVP - v0.2.0+)
 
-- SSH integration for remote access
 - Machine destroy operations
 - OrbStack CLI wrapper completion (delete command)
 - Provisioner support (Shell, Ansible, Chef, Puppet)
