@@ -74,3 +74,5 @@
 !.claude/baseline/.gitkeep
 test-env/
 test-vagrant/
+
+bundle
