@@ -47,6 +47,10 @@ module VagrantPlugins
           end
         when :reload
           build_reload_action
+        when :ssh
+          Vagrant::Action::Builder.new.tap do |b|
+            b.use Action::SSH
+          end
         when :ssh_run
           Vagrant::Action::Builder.new.tap do |b|
             b.use Action::SSHRun
