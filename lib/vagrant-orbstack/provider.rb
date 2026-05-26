@@ -40,6 +40,7 @@ module VagrantPlugins
         when :up
           Vagrant::Action::Builder.new.tap do |b|
             b.use Action::Create
+            include_provisioning(b)
           end
         when :halt
           Vagrant::Action::Builder.new.tap do |b|
@@ -55,6 +56,8 @@ module VagrantPlugins
           Vagrant::Action::Builder.new.tap do |b|
             b.use Action::Destroy
           end
+        when :provision
+          build_provision_action
           # Return nil for unsupported actions (future stories, etc.)
         end
       end
@@ -366,6 +369,19 @@ module VagrantPlugins
           b.use Action::Halt
           b.use Action::Start
           include_provisioning(b)
+        end
+      end
+
+      # Build provision action: run provisioners on a running machine.
+      #
+      # @return [Vagrant::Action::Builder, nil] Builder with Provision middleware,
+      #   or nil if Provision middleware is unavailable.
+      # @api private
+      def build_provision_action
+        return unless defined?(Vagrant::Action::Builtin::Provision)
+
+        Vagrant::Action::Builder.new.tap do |b|
+          b.use Vagrant::Action::Builtin::Provision
         end
       end
 

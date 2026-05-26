@@ -125,6 +125,8 @@ unless defined?(Vagrant)
 
     module Action
       class Builder
+        attr_reader :stack
+
         def initialize
           @stack = []
         end
@@ -137,6 +139,18 @@ unless defined?(Vagrant)
           # Mock middleware execution
           @stack.each do |middleware|
             middleware.new(->(_) {}, env).call(env)
+          end
+        end
+      end
+
+      module Builtin
+        class Provision
+          def initialize(app, _env)
+            @app = app
+          end
+
+          def call(env)
+            @app.call(env)
           end
         end
       end

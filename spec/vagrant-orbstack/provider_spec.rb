@@ -712,6 +712,32 @@ RSpec.describe 'VagrantPlugins::OrbStack::Provider' do
         # Act
         action.call(env)
       end
+
+      it 'includes Provision middleware in the :up builder stack' do
+        # Arrange & Act
+        action = provider.action(:up)
+
+        # Assert - Provision should be in the stack so provisioners run on `vagrant up`
+        expect(action.stack).to include(Vagrant::Action::Builtin::Provision)
+      end
+    end
+
+    context 'when requesting :provision action' do
+      it 'returns a Vagrant::Action::Builder instance' do
+        # Arrange & Act
+        action = provider.action(:provision)
+
+        # Assert
+        expect(action).to be_a(Vagrant::Action::Builder)
+      end
+
+      it 'includes Provision middleware in the :provision builder stack' do
+        # Arrange & Act
+        action = provider.action(:provision)
+
+        # Assert
+        expect(action.stack).to include(Vagrant::Action::Builtin::Provision)
+      end
     end
 
     context 'when requesting unsupported actions' do
@@ -755,12 +781,12 @@ RSpec.describe 'VagrantPlugins::OrbStack::Provider' do
         expect(action).to be_nil
       end
 
-      it 'returns nil for :provision action (not yet implemented)' do
+      it 'returns an action builder for :provision action' do
         # Arrange & Act
         action = provider.action(:provision)
 
         # Assert
-        expect(action).to be_nil
+        expect(action).to be_a(Vagrant::Action::Builder)
       end
     end
 
